@@ -1,5 +1,3 @@
-import os
-
 from bs4 import BeautifulSoup, NavigableString
 import mammoth
 from PIL import Image
@@ -201,12 +199,6 @@ class HTMLPreprocessor:
         processed_html = self.preprocess_html(html_content)
         self.write_html_to_file(processed_html)
         return processed_html
-
-
-def list_docx_files(directory):
-    return [file for file in os.listdir(directory)
-            if os.path.isfile(os.path.join(directory, file)) and file.endswith('.docx')]
-
 
 # files = list_docx_files('./src/problemFiles/convertionProblem/')
 # for index, file in enumerate(files):

@@ -9,9 +9,10 @@ from llama_index.node_parser import SentenceSplitter, HTMLNodeParser
 from llama_index.schema import Document
 import enviorment
 from simplePipline.margeDescriptionWithText import margeDescriptionWithText
-from simplePipline.preprocess import HTMLPreprocessor, list_docx_files
+from simplePipline.preprocess import HTMLPreprocessor
+from simplePipline.utils.utilities import list_docx_files
 from simplePipline.preprocessStep2 import create_node_metadata_instances_associated
-from simplePipline.testing.lamaIndexPipline import TestLamaIndexPipeline
+from simplePipline.test.lamaIndexTestPipline import TestLamaIndexPipeline
 from simplePipline.Loader.documentLoader import DocumentLoader
 import nest_asyncio
 from docx2python import docx2python
@@ -215,7 +216,7 @@ def generate_image_descriptions():
         preNodes = create_node_metadata_instances_associated(soup)
         instances_with_images = [instance for instance in preNodes if instance.image]
         result = []
-        with open('report_templates/texttemplate.html', 'r', encoding='utf-8') as htmlfile:
+        with open('utils/report_templates/texttemplate.html', 'r', encoding='utf-8') as htmlfile:
             html_content = htmlfile.read()
         for instance in instances_with_images:
             context = instance.all_text

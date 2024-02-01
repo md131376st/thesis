@@ -11,8 +11,8 @@ import os
 import asyncio
 
 from simplePipline.Loader.documentLoader import DocumentLoader
-from simplePipline.testing.questionGenrator import QuestionGenerator
-from simplePipline.testing.testPipline import TestPipline
+from simplePipline.test.questionGenrator import QuestionGenerator
+from simplePipline.test.testPipline import TestPipline
 from simplePipline.utils.logger import Logger
 
 

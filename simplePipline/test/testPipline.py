@@ -4,7 +4,7 @@ from llama_index import ServiceContext
 from llama_index.llms import OpenAI
 
 from simplePipline.Loader.documentLoader import DocumentLoader
-from simplePipline.testing.questionGenrator import QuestionGenerator
+from simplePipline.test.questionGenrator import QuestionGenerator
 
 
 class TestPipline:
