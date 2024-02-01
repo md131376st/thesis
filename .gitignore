@@ -94,9 +94,9 @@ db.sqlite3
 /simplePipline/data1/
 /simplePipline/data2/
 /simplePipline/datapre/
-/simplePipline/image_testdata/
+/simplePipline/data/image_testdata/
 /simplePipline/img/
 /simplePipline/imgdescription/
-/simplePipline/mainData/
+/simplePipline/data/src/
 /simplePipline/question_dataset.txt
 

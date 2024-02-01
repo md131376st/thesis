@@ -208,10 +208,10 @@ def list_docx_files(directory):
             if os.path.isfile(os.path.join(directory, file)) and file.endswith('.docx')]
 
 
-# files = list_docx_files('./mainData/problemFiles/convertionProblem/')
+# files = list_docx_files('./src/problemFiles/convertionProblem/')
 # for index, file in enumerate(files):
 #     print(file)
-#     preprocessor = HTMLPreprocessor("./mainData/problemFiles/convertionProblem/"+file, str(index)+".html" )
+#     preprocessor = HTMLPreprocessor("./src/problemFiles/convertionProblem/"+file, str(index)+".html" )
 #     html_content = preprocessor.process_docx_to_html()
 # preprocessor = HTMLPreprocessor(
 #     "./data/AFU - ISY_Motore di ricerca - v1.0.1.docx",

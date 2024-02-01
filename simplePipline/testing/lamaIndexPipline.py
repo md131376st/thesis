@@ -2,31 +2,20 @@ from llama_index import Response
 
 from llama_index.llms import OpenAI
 
-from llama_index import download_loader
-from llama_index import SimpleDirectoryReader
 from llama_index import ServiceContext
 from llama_index.evaluation import FaithfulnessEvaluator, QueryResponseEvaluator
 
 import os
 import asyncio
 
-from simplePipline.QuestionGenrator import QuestionGenerator
+from simplePipline.Loader.documentLoader import DocumentLoader
+from simplePipline.testing.questionGenrator import QuestionGenerator
+from simplePipline.testing.testPipline import TestPipline
 
 
-class DocumentLoader:
-    @staticmethod
-    def load_documents(directory):
-        UnstructuredReader = download_loader('UnstructuredReader')
-        dir_reader = SimpleDirectoryReader(directory, file_extractor={
-            ".pdf": UnstructuredReader(),
-            ".html": UnstructuredReader(),
-            ".docx": UnstructuredReader(),
-        })
-        return dir_reader.load_data()
-
-
-class TestPipeline:
+class TestLamaIndexPipeline(TestPipline):
     def __init__(self, query_engine, filepath='./data', version=0):
+        super().__init__()
         self.query_engine = query_engine
         self.filepath = filepath
         self.version = version
@@ -36,23 +25,6 @@ class TestPipeline:
 
     async def run(self):
         self.responses = await self.get_responses(self.question_dataset)
-
-    def get_test_set(self):
-        if os.path.exists("question_dataset.txt"):
-            return self._read_questions_from_file("question_dataset.txt")
-
-        documents = DocumentLoader.load_documents(self.filepath)
-        generated_questions = QuestionGenerator.generate_questions(documents, self.gpt4_service_context)
-
-        with open("question_dataset.txt", "w") as file:
-            for question in generated_questions:
-                file.write(f"{question.strip()}\n")
-
-        return generated_questions
-
-    def _read_questions_from_file(self, filepath):
-        with open(filepath, "r") as file:
-            return [line.strip() for line in file]
 
     async def run_query(self, query):
         try:
@@ -70,6 +42,7 @@ class TestPipeline:
             all_responses.extend(responses)
             await asyncio.sleep(1)  # To avoid rate limits
         return all_responses
+
 
     async def evaluate_responses(self, evaluator, log_filename, is_correctness_evaluation=False):
         total_correct = 0

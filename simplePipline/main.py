@@ -4,44 +4,32 @@ import os
 from io import BytesIO
 import requests
 import json
-from openai import OpenAI
-from langchain.chat_models import ChatOpenAI
-from llama_index import ServiceContext, VectorStoreIndex, load_index_from_storage, SimpleDirectoryReader
-from llama_index.ingestion import IngestionPipeline
-from llama_index.llms import OpenAI
-from llama_index.node_parser import SentenceSplitter, HTMLNodeParser, NodeParser
-from llama_index.schema import TextNode, Document
+from llama_index import VectorStoreIndex, load_index_from_storage
+from llama_index.node_parser import SentenceSplitter, HTMLNodeParser
+from llama_index.schema import Document
 import enviorment
 from simplePipline.margeDescriptionWithText import margeDescriptionWithText
 from simplePipline.preprocess import HTMLPreprocessor, list_docx_files
 from simplePipline.preprocessStep2 import create_node_metadata_instances_associated
-from simplePipline.test import DocumentLoader, TestPipeline
+from simplePipline.testing.lamaIndexPipline import TestLamaIndexPipeline
+from simplePipline.Loader.documentLoader import DocumentLoader
 import nest_asyncio
 from docx2python import docx2python
 from llama_index.multi_modal_llms.openai import OpenAIMultiModal
-from langchain.schema.messages import HumanMessage
-from bs4 import BeautifulSoup, NavigableString
-from llama_index.indices.multi_modal.base import MultiModalVectorStoreIndex
+from bs4 import BeautifulSoup
 
 nest_asyncio.apply()
 
-from pydantic import BaseModel, Field
-
-from typing import List, Optional
 from PIL import Image
 import matplotlib.pyplot as plt
-from llama_index.indices.multi_modal.base import MultiModalVectorStoreIndex
-from llama_index.vector_stores import QdrantVectorStore
-from llama_index import SimpleDirectoryReader, StorageContext
 
-import qdrant_client
 from llama_index import (
     SimpleDirectoryReader,
 )
 
 
 def get_image():
-    docx_content = docx2python('image_testdata/AFU - ISY_Motore di ricerca - v1.0.1.docx')
+    docx_content = docx2python('data/image_testdata/AFU - ISY_Motore di ricerca - v1.0.1.docx')
     docx_content.save_images('./data/image/1')
 
 
@@ -54,7 +42,7 @@ def create_simple_index():
 
 def test_simple_pipeline(filepath='./data'):
     query_engine = create_simple_index().as_query_engine()
-    pipeline = TestPipeline(query_engine, filepath)
+    pipeline = TestLamaIndexPipeline(query_engine, filepath)
     asyncio.run(pipeline.test_hallucination())
     asyncio.run(pipeline.test_correction())
 
@@ -89,7 +77,7 @@ def simple_html_pipline_with_out_images():
                     "li", "b", "i",
                     "u", "section",
                     "img", "table", "tr", "td", "th"]
-    preprocessor = HTMLPreprocessor("image_testdata/AFU - ISY_Motore di ricerca - v1.0.1.docx",
+    preprocessor = HTMLPreprocessor("data/image_testdata/AFU - ISY_Motore di ricerca - v1.0.1.docx",
                                     "output.html")
     html_content = preprocessor.process_docx_to_html()
     documents = []
@@ -98,7 +86,7 @@ def simple_html_pipline_with_out_images():
     nodes = node_parser.get_nodes_from_documents(documents, True)
     index = VectorStoreIndex(nodes)
     query_engine = index.as_query_engine()
-    pipeline = TestPipeline(query_engine)
+    pipeline = TestLamaIndexPipeline(query_engine)
     asyncio.run(pipeline.test_hallucination())
     asyncio.run(pipeline.test_correction())
 
@@ -306,7 +294,7 @@ if __name__ == '__main__':
     documents = DocumentLoader.load_documents("./data1")
     nodes = parser.get_nodes_from_documents(documents)
     query_engine = VectorStoreIndex(nodes).as_query_engine()
-    pipeline = TestPipeline(query_engine, "./data1")
+    pipeline = TestLamaIndexPipeline(query_engine, "./data1")
     asyncio.run(pipeline.test_hallucination())
     # asyncio.run(pipeline.test_correction())
 
