@@ -15,13 +15,8 @@ from simplePipline.testing.testPipline import TestPipline
 
 class TestLamaIndexPipeline(TestPipline):
     def __init__(self, query_engine, filepath='./data', version=0):
-        super().__init__()
+        super().__init__(filepath, version)
         self.query_engine = query_engine
-        self.filepath = filepath
-        self.version = version
-        self.gpt4_service_context = ServiceContext.from_defaults(llm=OpenAI(llm="gpt-4", temperature=0))
-        self.question_dataset = self.get_test_set()
-        self.responses = []
 
     async def run(self):
         self.responses = await self.get_responses(self.question_dataset)
@@ -42,7 +37,6 @@ class TestLamaIndexPipeline(TestPipline):
             all_responses.extend(responses)
             await asyncio.sleep(1)  # To avoid rate limits
         return all_responses
-
 
     async def evaluate_responses(self, evaluator, log_filename, is_correctness_evaluation=False):
         total_correct = 0

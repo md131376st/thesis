@@ -36,3 +36,9 @@ class TestPipline:
     def read_questions_from_file(self, filepath):
         with open(filepath, "r") as file:
             return [line.strip() for line in file]
+
+    def test_hallucination(self):
+        pass
+
+    def test_correction(self):
+        pass
