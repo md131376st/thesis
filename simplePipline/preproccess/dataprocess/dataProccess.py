@@ -1,12 +1,10 @@
+from simplePipline.preproccess.baseclass import Baseclass
 from simplePipline.utils.logger import Logger
 
 
-class DataPreprocess:
+class DataPreprocess(Baseclass):
     def __init__(self, loglevel, content):
-        self.logger = Logger("Data Cleaning",
-                             None,
-                             console=True,
-                             level=loglevel).get_logger()
+        super().__init__("Data Cleaning", loglevel)
         self.content = content
 
     def preprocess(self):
@@ -37,5 +35,3 @@ class DataPreprocess:
     def write_content(self, filepath):
         with open(filepath, "w", encoding="utf-8") as file:
             file.write(self.content)
-
-

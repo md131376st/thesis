@@ -21,16 +21,16 @@ class TransferType(Enum):
     BYTEIO = 1
 
 
-class HTMLDataTransfer(DataTransfer):
+class DOCXtoHTMLDataTransfer(DataTransfer):
     def __init__(self, loglevel=logging.INFO, transfer_type=TransferType.BYTEIO):
         super().__init__(loglevel)
         self.type = transfer_type
 
-    def transfer(self, info):
+    def transfer(self, filename=None, content=None):
         if self.type == TransferType.BYTEIO:
-            return self.convert_docx_bytes_io_to_html(info)
+            return self.convert_docx_bytes_io_to_html(content)
         elif self.type == TransferType.FIle:
-            return self.convert_docx_to_html(info)
+            return self.convert_docx_to_html(filename)
         pass
 
     def convert_docx_to_html(self, docx_file_path):

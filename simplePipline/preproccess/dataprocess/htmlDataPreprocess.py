@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image
 from bs4 import BeautifulSoup, NavigableString
 
-from simplePipline.preproccess.dataProccess import DataPreprocess
+from simplePipline.preproccess.dataprocess.dataProccess import DataPreprocess
 
 
 class HTMLDataPreprocess(DataPreprocess):
