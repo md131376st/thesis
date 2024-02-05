@@ -1,6 +1,6 @@
 import logging
 
-from simplePipline.preproccess.baseclass import Baseclass
+from simplePipline.baseclass import Baseclass
 
 
 class FeatureExtraction(Baseclass):

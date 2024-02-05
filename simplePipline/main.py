@@ -8,10 +8,7 @@ from llama_index import VectorStoreIndex, load_index_from_storage
 from llama_index.node_parser import SentenceSplitter, HTMLNodeParser
 from llama_index.schema import Document
 import enviorment
-from simplePipline.margeDescriptionWithText import margeDescriptionWithText
-from simplePipline.preprocess import HTMLPreprocessor
 from simplePipline.utils.utilities import list_docx_files
-from simplePipline.preprocessStep2 import create_node_metadata_instances_associated
 from simplePipline.test.lamaIndexTestPipline import TestLamaIndexPipeline
 from simplePipline.Loader.documentLoader import DocumentLoader
 import nest_asyncio

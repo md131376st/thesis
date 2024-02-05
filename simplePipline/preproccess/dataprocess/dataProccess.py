@@ -1,5 +1,4 @@
-from simplePipline.preproccess.baseclass import Baseclass
-from simplePipline.utils.logger import Logger
+from simplePipline.baseclass import Baseclass
 
 
 class DataPreprocess(Baseclass):
