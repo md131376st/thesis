@@ -10,7 +10,7 @@ class HTMLFeatureExtraction(FeatureExtraction):
     def __init__(self, content, loglevel=logging.INFO):
         super().__init__(content, loglevel)
         self.soup = BeautifulSoup(self.content, 'html.parser')
-        self.instances =[]
+        self.instances = []
 
     def clean_data(self, paragraphs, images, image_captions, tables):
         paragraphs = list(filter(None, paragraphs))
@@ -108,17 +108,18 @@ class HTMLFeatureExtraction(FeatureExtraction):
                         image_captions.append(text)
                     else:
                         paragraphs.append(text)
-                    if sibling.name ==('img'):
-                        images.append(sibling['src'])
+                    if sibling.find('img'):
+                        images.append(sibling.find('img')['src'])
                         all_text += "$image_" + str(image_index) + "$"
                         image_index += 1
                 elif sibling.name == 'table':
-                    table_data, table_images, table_image_captions, all_text_table, image_index = self.process_table(
+                    (table_data, table_images, table_image_captions,
+                     all_text_table, image_index) = self.process_table(
                         sibling, image_index)
                     all_text += all_text_table
-                    tables.extend(table_data)
-                    images.extend(table_images)
-                    image_captions.extend(table_image_captions)
+                    tables += table_data
+                    images += table_images
+                    image_captions += table_image_captions
 
                 elif sibling.name == 'img':
                     images.append(sibling['src'])
@@ -136,6 +137,3 @@ class HTMLFeatureExtraction(FeatureExtraction):
                 all_text=title_text + " " + all_text
             )
             self.instances.append(instance)
-
-
-

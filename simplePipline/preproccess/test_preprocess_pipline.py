@@ -40,12 +40,12 @@ if __name__ == '__main__':
     # transformer=LlamaIndexTransformer(transformType=TransformType.JSONNodeParser,context=data)
     # transformer.transform(filename="./hi.json")
 
-    transformer = LlamaIndexTransformer(transformType=TransformType.HierarchicalNodeParser, context=data)
-    transformer.transform()
-    chunk = transformer.get_chunk()
-    vs=ChromadbVectorStorage(path="./test", collection_name="test", loglevel=logging.DEBUG )
-
-    vs.store(nodes=chunk,  service_context=LamaIndexEmbeder(chunk).get_service_context() )
+    # transformer = LlamaIndexTransformer(transformType=TransformType.HierarchicalNodeParser, context=data)
+    # transformer.transform()
+    # chunk = transformer.get_chunk()
+    # vs=ChromadbVectorStorage(path="./test", collection_name="test", loglevel=logging.DEBUG )
+    #
+    # vs.store(nodes=chunk,  service_context=LamaIndexEmbeder(chunk).get_service_context() )
     # hi = vs.retrieve(question="Qual è il nome del progetto a cui si riferisce il documento?")
 
     # embeder = OpenAIEmbeder(chunk, loglevel=logging.INFO)
