@@ -28,8 +28,3 @@ class Document(models.Model):
         return self.content
 
 
-def generate_unique_identifier(file):
-    file.seek(0)
-    file_hash = hashlib.sha256(file.read()).hexdigest()
-    file.seek(0)
-    return file_hash
