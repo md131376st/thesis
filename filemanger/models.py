@@ -1,10 +1,6 @@
-import uuid
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
 from filemanger.custome_storage import OverwriteStorage
-import hashlib
 
 
 # Create your models here.
@@ -26,5 +22,3 @@ class Document(models.Model):
 
     def __str__(self):
         return self.content
-
-
