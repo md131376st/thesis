@@ -1,10 +1,35 @@
+import uuid
+
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from filemanger.custome_storage import OverwriteStorage
+import hashlib
 
 
 # Create your models here.
 class Document(models.Model):
-    # name = models.FilePathField(max_length=256)
-    content = models.FileField(upload_to='files')
+    class State(models.IntegerChoices):
+        FileUpload = 1, _('fileupload')
+        FilePreporcess = 2, _('filepreprocess')
+        ImageTextGenerate = 3, _('ImageTextGenerate')
+        ImagrDescriptionReview = 4, _('ImagerDescriptionReview')
+        indexed = 5, _('indexed')
+
+    state = models.IntegerField(
+        choices=State.choices,
+        default=State.FileUpload,
+    )
+    file_name = models.CharField(max_length=255, unique=True)
+    content_hash = models.CharField(max_length=64, blank=True, null=True)
+    content = models.FileField(upload_to='files', storage=OverwriteStorage())
 
     def __str__(self):
         return self.content
+
+
+def generate_unique_identifier(file):
+    file.seek(0)
+    file_hash = hashlib.sha256(file.read()).hexdigest()
+    file.seek(0)
+    return file_hash

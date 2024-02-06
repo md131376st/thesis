@@ -1,5 +1,8 @@
 import json
+import logging
 import os
+
+from simplePipline.utils.logger import Logger
 
 
 def list_docx_files(directory):
@@ -53,3 +56,9 @@ def save_NodeMetadata_to_json(filename, nodes):
     nodes_dict = [node.dict() for node in nodes]
     with open(f'{filename}.json', 'w') as f:
         json.dump(nodes_dict, f, indent=4)
+
+
+def log_debug(message):
+    logger = logging.getLogger('my_app')
+    logger.debug(message)
+    return
