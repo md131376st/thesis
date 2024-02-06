@@ -38,6 +38,7 @@ CORS_ORIGIN_WHITELIST = [
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
 # Application definition
 
 INSTALLED_APPS = [
@@ -93,7 +94,16 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
+# setting up radis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Adjust the URL based on your Redis setup
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -111,6 +121,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

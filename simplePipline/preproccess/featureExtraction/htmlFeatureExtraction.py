@@ -108,8 +108,8 @@ class HTMLFeatureExtraction(FeatureExtraction):
                         image_captions.append(text)
                     else:
                         paragraphs.append(text)
-                    if sibling.find('img'):
-                        images.append(sibling.find('img')['src'])
+                    if sibling.name ==('img'):
+                        images.append(sibling['src'])
                         all_text += "$image_" + str(image_index) + "$"
                         image_index += 1
                 elif sibling.name == 'table':
@@ -121,7 +121,7 @@ class HTMLFeatureExtraction(FeatureExtraction):
                     image_captions.extend(table_image_captions)
 
                 elif sibling.name == 'img':
-                    images.append(sibling.find('img')['src'])
+                    images.append(sibling['src'])
                     all_text += "$image_" + str(image_index) + "$"
                     image_index += 1
 

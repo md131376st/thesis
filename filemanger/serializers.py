@@ -1,11 +1,17 @@
 import hashlib
+import logging
 
 from rest_framework import serializers
 
 from filemanger.models import Document
 import os
 
-from simplePipline.utils.utilities import log_debug
+from simplePipline.preproccess.dataTransfer import TransferType, DOCXtoHTMLDataTransfer
+from simplePipline.preproccess.dataprocess.htmlDataPreprocess import HTMLDataPreprocess
+from simplePipline.preproccess.featureExtraction.htmlFeatureExtraction import HTMLFeatureExtraction
+from simplePipline.preproccess.imgTextConvertor import ImgTextConvertor
+from simplePipline.transformer.tansformer import Transformer
+from simplePipline.utils.utilities import log_debug, save_NodeMetadata_to_json
 
 
 def validate_file_type(uploaded_file):
@@ -50,3 +56,24 @@ class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = ["content", "state_display"]
+
+
+class PiplineSerializer(serializers.Serializer):
+    content = serializers.FileField()
+
+    def validate_content(self, value):
+        validate_file_type(value)
+        ext = os.path.splitext(value.name)[1]
+        log_debug(str(ext))
+        return value
+
+    def create(self, validated_data):
+        return {"content": validated_data["content"]}
+
+
+class ProcessSerializer(serializers.ModelSerializer):
+    useQuery = serializers.BooleanField()
+
+    class Meta:
+        model = Document
+        fields = ["file_name", "useQuery"]
