@@ -1,11 +1,13 @@
 import hashlib
 import logging
+from enum import Enum
 
 from rest_framework import serializers
 
 from filemanger.models import Document
 import os
 
+from simplePipline.embeder.embeder import EmbederType
 from simplePipline.preproccess.dataTransfer import TransferType, DOCXtoHTMLDataTransfer
 from simplePipline.preproccess.dataprocess.htmlDataPreprocess import HTMLDataPreprocess
 from simplePipline.preproccess.featureExtraction.htmlFeatureExtraction import HTMLFeatureExtraction
@@ -72,8 +74,40 @@ class PiplineSerializer(serializers.Serializer):
 
 
 class ProcessSerializer(serializers.ModelSerializer):
-    useQuery = serializers.BooleanField()
+    is_async = serializers.BooleanField()
 
     class Meta:
         model = Document
-        fields = ["file_name", "useQuery"]
+        fields = ["file_name", "is_async"]
+
+
+class ChunkType(Enum):
+    TEXT = "txt"
+    CODE = "code"
+    LAMA_INDEX = "llm_index"
+
+
+class VectorStorageSerializer(serializers.Serializer):
+    collection_name = serializers.CharField()
+    is_async = serializers.BooleanField()
+    chunks = serializers.ListField(
+        child=serializers.DictField(
+            child=serializers.CharField(allow_blank=True)
+        )
+    )
+    metadata = serializers.ListField(
+        child=serializers.DictField(
+            child=serializers.CharField()
+        )
+    )
+    chunks_type = serializers.ChoiceField(
+        choices=[(choice.value, choice.name) for choice in ChunkType]
+    )
+    embedding_type = serializers.ChoiceField(
+        choices=[(choice.value, choice.name) for choice in EmbederType],
+        default=EmbederType.DEFULT.value
+    )
+
+
+class CollectionSerializer(serializers.Serializer):
+    collection_name = serializers.CharField()

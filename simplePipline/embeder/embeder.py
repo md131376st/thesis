@@ -12,26 +12,30 @@ class Embeder(Baseclass):
     def __init__(self, context, loglevel=logging.INFO):
         super().__init__("Generate Text Embeddings", loglevel=loglevel)
         self.context = context
+        self.embeddings = []
 
     def embedding(self, **kwargs):
         pass
 
+    def get_embedding(self):
+        return self.embeddings
 
-OpenAIEmbeddingModel = [
-    "text-embedding-3-small",
-    "text-embedding-3-large"
-]
+
+class EmbederType(Enum):
+    OpenAI_3_s = "text-embedding-3-small"
+    OpenAI_3_l = "text-embedding-3-large"
+    OpenAI_2 = "text-embedding-ada-002"
+    DEFULT = "text-embedding-ada-002"
 
 
 class OpenAIEmbeder(Embeder):
     def __init__(self, context, loglevel=logging.INFO):
         super().__init__(context=context, loglevel=loglevel)
         self.client = OpenAI()
-        self.embeddings = []
 
-    def embedding(self, model=OpenAIEmbeddingModel[0], **kwargs):
+    def embedding(self, model=EmbederType.OpenAI_3_s.value, **kwargs):
         for chunk in self.context:
-            text = chunk.text.replace("\n", " ").replace("$", " ")
+            text = chunk["text"].replace("\n", " ").replace("$", " ")
             self.embeddings.append(self.client.embeddings.create(input=[text],
                                                                  model=model).data[0].embedding)
             break
@@ -39,14 +43,15 @@ class OpenAIEmbeder(Embeder):
 
 
 class LamaIndexEmbeder(Embeder):
-    def __init__(self, context, loglevel=logging.INFO, local=None, model=OpenAIEmbeddingModel[0]):
+    def __init__(self, context, loglevel=logging.INFO,
+                 local=None, model=EmbederType.OpenAI_3_s.value,
+                 **kwargs):
         super().__init__(context=context, loglevel=loglevel)
         self.embed_model = OpenAIEmbedding(model=model)
         if local:
             self.service_context = ServiceContext.from_defaults(embed_model=local)
         else:
             self.service_context = ServiceContext.from_defaults(embed_model=self.embed_model)
-        self.embeddings = []
 
     def embedding(self, **kwargs):
         for chunk in self.context:

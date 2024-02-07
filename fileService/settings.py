@@ -37,8 +37,11 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000'
 ]
 CORS_ALLOW_ALL_ORIGINS = True
+# Celery Configuration
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_TIMEZONE = 'CET'
 # Application definition
 
 INSTALLED_APPS = [
@@ -51,7 +54,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "corsheaders",
-    "filemanger.apps.FilemangerConfig"
+    "filemanger.apps.FilemangerConfig",
+    'celery',
 ]
 
 MIDDLEWARE = [
@@ -92,18 +96,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
-    }
+    },
 }
-# setting up radis
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",  # Adjust the URL based on your Redis setup
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -153,7 +148,7 @@ LOGGING = {
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "CET"
 
 USE_I18N = True
 
@@ -172,5 +167,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440
 MEDIA_ROOT = 'files'
 MEDIA_URL = '/files/'
+PROCESSFIELS = 'preprocces'
+CHROMA_DB ='db'
 # set max side to 10 MB
 # DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760

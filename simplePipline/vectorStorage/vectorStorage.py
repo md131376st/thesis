@@ -17,24 +17,28 @@ class VectorStorage(Baseclass):
         pass
 
 
-class ChromadbVectorStorage(VectorStorage):
-    def __init__(self, path, collection_name, loglevel=logging.INFO):
+class ChromadbLammaIndexVectorStorage(VectorStorage):
+    def __init__(self, path, loglevel=logging.INFO):
         super().__init__(loglevel=loglevel)
         self.path = path
         self.db = chromadb.PersistentClient(path=self.path)
-        collection = self.db.get_or_create_collection(collection_name)
-        self.vector_store = ChromaVectorStore(chroma_collection=collection)
+
         self.index = None
         self.queryEngine = None
 
-    def store(self, nodes, service_context):
+    def store(self, nodes, collection_name, service_context, is_async=False):
+        collection = self.db.get_or_create_collection(collection_name)
+        self.vector_store = ChromaVectorStore(chroma_collection=collection)
         storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
         self.logger.debug("create vector storage ")
         self.index = VectorStoreIndex(
-            nodes=nodes, storage_context=storage_context, service_context=service_context
+            nodes=nodes, storage_context=storage_context, service_context=service_context,
+            use_async=is_async
         )
 
-    def load(self, service_context):
+    def load(self, collection_name, service_context):
+        collection = self.db.get_or_create_collection(collection_name)
+        self.vector_store = ChromaVectorStore(chroma_collection=collection)
         self.logger.debug("Load Vector storage ")
         self.index = VectorStoreIndex.from_vector_store(
             self.vector_store,
@@ -47,6 +51,28 @@ class ChromadbVectorStorage(VectorStorage):
 
     def get_query_engine(self):
         return self.index.as_query_engine()
+
+
+class ChromadbIndexVectorStorage(VectorStorage):
+    def __init__(self, path, loglevel=logging.INFO):
+        super().__init__(loglevel=loglevel)
+        self.path = path
+        self.db = chromadb.PersistentClient(path=self.path)
+
+        self.index = None
+        self.queryEngine = None
+
+    def store(self, chunks, embeddings, metadata,
+              collection_name,
+              ids):
+        collection = self.db.get_or_create_collection(collection_name)
+        collection.add(ids=ids, embeddings=embeddings, documents=chunks, metadatas=metadata)
+
+    def load(self, collection_name):
+        return self.db.get_or_create_collection(collection_name)
+
+    def retrieve(self, question, **kwargs):
+        pass
 
 
 ''' need too work on it in case needed  '''

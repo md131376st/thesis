@@ -1,14 +1,14 @@
 import json
 import logging
 
-from simplePipline.embeder.embeder import OpenAIEmbeder, OpenAIEmbeddingModel, LamaIndexEmbeder
+from simplePipline.embeder.embeder import OpenAIEmbeder, LamaIndexEmbeder
 from simplePipline.preproccess.dataTransfer import DOCXtoHTMLDataTransfer, TransferType, DOCXtoHTMLDataTransfer
 from simplePipline.preproccess.dataprocess.htmlDataPreprocess import HTMLDataPreprocess
 from simplePipline.preproccess.featureExtraction.htmlFeatureExtraction import HTMLFeatureExtraction
 from simplePipline.preproccess.imgTextConvertor import ImgTextConvertor
 from simplePipline.transformer.tansformer import LlamaIndexTransformer, TransformType
 from simplePipline.utils.utilities import write_html_file, img_to_html_template, save_NodeMetadata_to_json
-from simplePipline.vectorStorage.vectorStorage import ChromadbVectorStorage
+from simplePipline.vectorStorage.vectorStorage import ChromadbLammaIndexVectorStorage
 
 if __name__ == '__main__':
     transfer = DOCXtoHTMLDataTransfer(loglevel=logging.DEBUG, transfer_type=TransferType.FIle)
@@ -34,18 +34,18 @@ if __name__ == '__main__':
     #                 )
     # save_NodeMetadata_to_json('hi', data)
 
-    # transformer=LlamaIndexTransformer(transformType=TransformType.SentenceSplitter,context=data)
-    # transformer.transform(chunk_size=200, chunk_overlap=50)
-
+    transformer = LlamaIndexTransformer(transformType=TransformType.SentenceSplitter, context=data)
+    transformer.transform(chunk_size=200, chunk_overlap=50)
+    chunk = transformer.get_chunk()
     # transformer=LlamaIndexTransformer(transformType=TransformType.JSONNodeParser,context=data)
     # transformer.transform(filename="./hi.json")
 
     # transformer = LlamaIndexTransformer(transformType=TransformType.HierarchicalNodeParser, context=data)
     # transformer.transform()
     # chunk = transformer.get_chunk()
-    # vs=ChromadbVectorStorage(path="./test", collection_name="test", loglevel=logging.DEBUG )
-    #
-    # vs.store(nodes=chunk,  service_context=LamaIndexEmbeder(chunk).get_service_context() )
+    vs = ChromadbLammaIndexVectorStorage(path="./test", loglevel=logging.DEBUG)
+
+    vs.store(nodes=chunk, collection_name="test", service_context=LamaIndexEmbeder(chunk).get_service_context())
     # hi = vs.retrieve(question="Qual è il nome del progetto a cui si riferisce il documento?")
 
     # embeder = OpenAIEmbeder(chunk, loglevel=logging.INFO)

@@ -8,9 +8,10 @@ class Document(models.Model):
     class State(models.IntegerChoices):
         FileUpload = 1, _('fileupload')
         FilePreporcess = 2, _('filepreprocess')
-        ImageTextGenerate = 3, _('ImageTextGenerate')
-        ImagrDescriptionReview = 4, _('ImagerDescriptionReview')
-        indexed = 5, _('indexed')
+        FeatureExtraction = 3, _('featureextraction'),
+        ImageTextGenerate = 4, _('ImageTextGenerate')
+        ImagrDescriptionReview = 5, _('ImagerDescriptionReview')
+        indexed = 6, _('indexed')
 
     state = models.IntegerField(
         choices=State.choices,
