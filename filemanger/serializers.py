@@ -8,12 +8,7 @@ from filemanger.models import Document
 import os
 
 from simplePipline.embeder.embeder import EmbederType
-from simplePipline.preproccess.dataTransfer import TransferType, DOCXtoHTMLDataTransfer
-from simplePipline.preproccess.dataprocess.htmlDataPreprocess import HTMLDataPreprocess
-from simplePipline.preproccess.featureExtraction.htmlFeatureExtraction import HTMLFeatureExtraction
-from simplePipline.preproccess.imgTextConvertor import ImgTextConvertor
-from simplePipline.transformer.tansformer import Transformer
-from simplePipline.utils.utilities import log_debug, save_NodeMetadata_to_json
+from simplePipline.utils.utilities import log_debug
 
 
 def validate_file_type(uploaded_file):
@@ -111,3 +106,10 @@ class VectorStorageSerializer(serializers.Serializer):
 
 class CollectionSerializer(serializers.Serializer):
     collection_name = serializers.CharField()
+
+
+class FeatureExtractionSerializer(serializers.Serializer):
+    filename = serializers.CharField()
+    is_async = serializers.BooleanField()
+    include_images = serializers.BooleanField()
+    store = serializers.BooleanField()

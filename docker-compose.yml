@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  django:
+
+    build: .
+    env_file:
+      - fileService/.env
+    command: python /code/manage.py runserver 0.0.0.0:8001
+    volumes:
+      - .:/code
+      - sqlite_data:/code/
+    ports:
+      - "8001:8001"
+    environment:
+      - OPENAI_ORGANIZATION
+      - OPENAI_API_KEY
+    depends_on:
+      - redis
+      - chroma
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    volumes:
+      - index_data:/chroma/.chroma/index
+    ports:
+      - "8000:8000"
+    networks:
+      - net
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    command: celery -A fileService worker --loglevel=info
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+volumes:
+  index_data:
+    driver: local
+  sqlite_data:
+     driver: local
+  backups:
+    driver: local
+
+networks:
+  net:
+    driver: bridge

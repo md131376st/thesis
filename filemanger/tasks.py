@@ -2,7 +2,7 @@ from celery import shared_task
 
 from filemanger.models import Document
 from filemanger.piplinesteps import TaskHandler
-from simplePipline.utils.utilities import log_debug
+from simplePipline.utils.utilities import log_debug, Get_json_filename, Get_html_filename
 
 
 @shared_task
@@ -28,3 +28,27 @@ def manage_embedding(collection_name, chunks, metadata, embedding_type, ids):
                                 embedding_type=embedding_type,
                                 ids=ids)
     log_debug(f"end embedding chunks for collection: {collection_name}")
+
+
+@shared_task
+def feature_extract_document(filename, include_images):
+    log_debug(f"extract feature: {filename}")
+    try:
+        document = Document.objects.get(file_name=filename)
+    except Document.DoesNotExist:
+        # Handle the case where the document doesn't exist
+        return
+    json_file_name = Get_json_filename(str(document.content))
+    html_file_name = Get_html_filename(str(document.content))
+    TaskHandler.feature_extraction(input_file=html_file_name,
+                                   output_file=json_file_name,
+                                   store=True,
+                                   include_images=include_images)
+    if include_images:
+        document.state = Document.State.ImageTextGenerate
+    else:
+        document.state = Document.State.FeatureExtraction
+    document.save()
+    log_debug(f"xtract feature complete: {filename}")
+
+    pass

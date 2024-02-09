@@ -2,6 +2,7 @@ import json
 import logging
 import os
 
+from fileService import settings
 from simplePipline.utils.logger import Logger
 
 
@@ -62,3 +63,15 @@ def log_debug(message):
     logger = logging.getLogger('my_app')
     logger.debug(message)
     return
+
+
+def readfile(path):
+    pass
+
+
+def Get_json_filename(filename):
+    return f"{filename.split('/')[1].rsplit('.')[0]}.json"
+
+
+def Get_html_filename(filename):
+    return f"{settings.PROCESSFIELS}/{str(filename.name).split('.')[0]}.html"

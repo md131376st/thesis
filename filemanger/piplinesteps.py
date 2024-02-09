@@ -6,7 +6,7 @@ from fileService import settings
 from simplePipline.embeder.embeder import OpenAIEmbeder
 from simplePipline.preproccess.dataTransfer import DOCXtoHTMLDataTransfer, TransferType
 from simplePipline.preproccess.dataprocess.htmlDataPreprocess import HTMLDataPreprocess
-from simplePipline.utils.utilities import log_debug
+from simplePipline.utils.utilities import log_debug, Get_html_filename
 from simplePipline.vectorStorage.vectorStorage import ChromadbIndexVectorStorage
 
 
@@ -30,7 +30,7 @@ class TaskHandler:
         preprocess = HTMLDataPreprocess(loglevel=logging.INFO, html_content=html_content)
         preprocess.preprocess()
 
-        preprocess.write_content(f"{settings.PROCESSFIELS}/{str(filename.name).split('.')[0]}.html")
+        preprocess.write_content(Get_html_filename(filename))
         if not is_async:
             return preprocess.get_content()
         else:
@@ -51,3 +51,8 @@ class TaskHandler:
         vectorStore.store(texts, chunk_embeddings,
                           metadata, collection_name, ids)
         return ids
+
+    @staticmethod
+    def feature_extraction(input_file,output_file, store, include_images):
+
+        pass

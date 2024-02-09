@@ -1,4 +1,5 @@
 import logging
+import os
 import tempfile
 
 from rest_framework import generics, status
@@ -6,19 +7,19 @@ from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
 from simplePipline.embeder.embeder import LamaIndexEmbeder, EmbederType
 from simplePipline.vectorStorage.vectorStorage import ChromadbLammaIndexVectorStorage
-from .tasks import process_document, manage_embedding
+from .tasks import process_document, manage_embedding, feature_extract_document
 
 from fileService import settings
 from filemanger.models import Document
 from filemanger.parser import LimitedFileSizeParser
 from filemanger.piplinesteps import TaskHandler
 from filemanger.serializers import DocumentSerializer, ProcessSerializer, PiplineSerializer, VectorStorageSerializer, \
-    ChunkType, CollectionSerializer
+    ChunkType, CollectionSerializer, FeatureExtractionSerializer
 from simplePipline.preproccess.dataTransfer import DOCXtoHTMLDataTransfer, TransferType
 from simplePipline.preproccess.dataprocess.htmlDataPreprocess import HTMLDataPreprocess
 from simplePipline.preproccess.featureExtraction.htmlFeatureExtraction import HTMLFeatureExtraction
 from simplePipline.preproccess.imgTextConvertor import ImgTextConvertor
-from simplePipline.utils.utilities import save_NodeMetadata_to_json
+from simplePipline.utils.utilities import save_NodeMetadata_to_json, Get_json_filename, Get_html_filename
 
 
 # Create your views here.
@@ -75,40 +76,83 @@ class PreProcess(CreateAPIView):
     serializer_class = ProcessSerializer
 
     def create(self, request, *args, **kwargs):
-        filename = request.data.get('file_name')
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            filename = serializer.validated_data['file_name']
+            try:
+                document = Document.objects.get(file_name=filename)
+            except Document.DoesNotExist:
+                return Response({"error": "Filename does not exist."}, status=status.HTTP_404_NOT_FOUND)
+            if document.state > Document.State.FileUpload:
+                return Response({"message": "File all ready processed."}, status=status.HTTP_200_OK)
+            if request.data.get("is_async"):
+                process_document.delay(
+                    filename
+                )
+                return Response({"message": "File preprocessing task enqueued."}, status=status.HTTP_202_ACCEPTED)
+            else:
+                process_html = TaskHandler.proccess_data(document.content, is_async=False)
+                with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.html') as temp_file:
+                    temp_file.write(process_html)
 
-        if not filename:
-            return Response({"error": "Filename is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            document = Document.objects.get(file_name=filename)
-        except Document.DoesNotExist:
-            return Response({"error": "Filename does not exist."}, status=status.HTTP_404_NOT_FOUND)
-        if document.state > Document.State.FileUpload:
-            return Response({"message": "File all ready processed."}, status=status.HTTP_200_OK)
-        if request.data.get("is_async"):
-            process_document.delay(
-                filename
-            )
-            return Response({"message": "File preprocessing task enqueued."}, status=status.HTTP_202_ACCEPTED)
+                document.state = Document.State.FilePreporcess
+                document.save()
+                response = Response({"message": "File processed successfully."}, status=status.HTTP_200_OK)
+                response['Content-Disposition'] = f'attachment; filename="{filename.split('.')[0]}.html"'
+                response['Content-Type'] = 'text/html'
+                response['X-Sendfile'] = temp_file.name
+                return response
         else:
-            process_html = TaskHandler.proccess_data(document.content, is_async=False)
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.html') as temp_file:
-                temp_file.write(process_html)
-
-            document.state = Document.State.FilePreporcess
-            document.save()
-
-            # Return the temporary file as a downloadable response
-            response = Response({"message": "File processed successfully."}, status=status.HTTP_200_OK)
-            response['Content-Disposition'] = f'attachment; filename="{filename.split('.')[0]}.html"'
-            response['Content-Type'] = 'text/html'
-            response['X-Sendfile'] = temp_file.name
-            return response
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FeatureExtract(CreateAPIView):
-    pass
+    serializer_class = FeatureExtractionSerializer
+
+    def check_document_state(self, document, html_file_name):
+        if document.state == Document.State.FilePreporcess:
+            return True
+        elif document.state == Document.State.FeatureExtraction:
+            return True
+        elif (document.state > Document.State.FeatureExtraction
+              and os.path.exists(
+                    f"{settings.FEATURE_EXTRACT}/{html_file_name}")):
+            return True
+        else:
+            return False
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            filename = serializer.validated_data['filename']
+            store = serializer.validated_data['store']
+            include_images = serializer.validated_data['include_images']
+            try:
+                document = Document.objects.get(file_name=filename)
+            except Document.DoesNotExist:
+                return Response(
+                    {"error": "Filename does not exist."},
+                    status=status.HTTP_404_NOT_FOUND)
+            json_file_name = Get_json_filename(str(document.content))
+
+            if self.check_document_state(document, json_file_name):
+                if serializer.validated_data["is_async"]:
+                    feature_extract_document.delay(filename, store, include_images)
+                else:
+                    html_file_name = Get_html_filename(str(document.content))
+                    TaskHandler.feature_extraction(html_file_name, json_file_name, store, include_images)
+
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            elif document.state < Document.State.FilePreporcess:
+                return Response(
+                    {"error": "File needs to be preprocessed before extracting features"},
+                    status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response(
+                    {"error": "File should be preprocessed or file extracting doesn't exist"},
+                    status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CollectionInfo(ListAPIView):
