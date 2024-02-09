@@ -18,6 +18,8 @@ services:
     depends_on:
       - redis
       - chroma
+    networks:
+      - net
   chroma:
     image: ghcr.io/chroma-core/chroma:latest
     volumes:
@@ -30,6 +32,13 @@ services:
     image: "redis:alpine"
     ports:
       - "6379:6379"
+    networks:
+      - net
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   celery:
     build: .
@@ -38,11 +47,16 @@ services:
       - .:/code
     depends_on:
       - redis
+    environment:
+      - OPENAI_ORGANIZATION
+      - OPENAI_API_KEY
+    networks:
+      - net
 volumes:
   index_data:
     driver: local
   sqlite_data:
-     driver: local
+    driver: local
   backups:
     driver: local
 

@@ -31,14 +31,18 @@ class EmbederType(Enum):
 class OpenAIEmbeder(Embeder):
     def __init__(self, context, loglevel=logging.INFO):
         super().__init__(context=context, loglevel=loglevel)
+        self.logger.debug("init open ai")
         self.client = OpenAI()
+        self.logger.debug("finish init open ai")
 
     def embedding(self, model=EmbederType.OpenAI_3_s.value, **kwargs):
         for chunk in self.context:
             text = chunk["text"].replace("\n", " ").replace("$", " ")
+            self.logger.debug(text)
+            self.logger.debug("open ai result")
             self.embeddings.append(self.client.embeddings.create(input=[text],
                                                                  model=model).data[0].embedding)
-            break
+
         pass
 
 
