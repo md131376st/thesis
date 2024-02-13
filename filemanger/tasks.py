@@ -23,7 +23,9 @@ def process_document(filename):
 def manage_embedding(collection_name, batch_list, embedding_type):
     log_debug(f"create embedding chunks for collection: {collection_name}")
     tasks = []
+    log_debug(f"batch send: {batch_list}")
     for batch in batch_list:
+        log_debug(f"chunks: {batch['chunks']} \n, metadata: {batch['metadata']} ")
         ids = [chunk['id'] for chunk in batch["chunks"]]
         tasks.append(
             embedding_task.s(
@@ -36,7 +38,6 @@ def manage_embedding(collection_name, batch_list, embedding_type):
     task_group = group(tasks)
     log_debug(f"end embedding chunks for collection: {collection_name}")
     return task_group.apply_async()
-
 
 
 @shared_task()

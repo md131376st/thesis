@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from simplePipline.batchHandler.batchHandler import EmbeddingBatchHandler
 from simplePipline.embeder.embeder import LamaIndexEmbeder, EmbederType
+from simplePipline.utils.utilities import log_debug
 from simplePipline.vectorStorage.vectorStorage import ChromadbLammaIndexVectorStorage
 from .tasks import manage_embedding
 
@@ -43,7 +44,11 @@ class EmbeddingView(CreateAPIView):
             chunks = serializer.validated_data['chunks']
             is_async = serializer.validated_data['is_async']
             metadata = serializer.validated_data['metadata']
-            warning = self.check_meta_data(chunk_type, metadata)
+            log_debug(f"metadataview={metadata}")
+            log_debug(f"len metadataview={len(metadata)}")
+
+            warning = self.check_meta_data(chunks, metadata)
+
             embedding_type = self.check_embeding_type(serializer.validated_data['embedding_type'])
 
             if chunk_type == ChunkType.TEXT.value:
@@ -66,22 +71,20 @@ class EmbeddingView(CreateAPIView):
 
     def text_chunks(self, chunks, collection_name, embedding_type, is_async, metadata, warning):
         activeMetaData = False if warning else True
+        chunks = TaskHandler.ensure_id(chunks)
+        ids = [chunk['id'] for chunk in chunks]
         batch = EmbeddingBatchHandler()
         batch.createBatchHandler(
             info={
                 "chunks": chunks,
                 "metadata": metadata,
-                "model": embedding_type
             },
             active_meta_data=activeMetaData
         )
 
         batch_list = batch.get_batch()
-        ids = []
+        log_debug(f"batch_text: {batch_list}")
         if is_async:
-            for batch in batch_list:
-                batch["chunks"] = TaskHandler.ensure_id(batch["chunks"])
-                ids += [chunk['id'] for chunk in batch["chunks"]]
             taskId = manage_embedding.delay(collection_name, batch_list, embedding_type).id
             return Response({"message": "manage embedding added to task enqueued ",
                              "embedding_id_list": ids,
@@ -89,7 +92,7 @@ class EmbeddingView(CreateAPIView):
                              "warning": warning}, status=status.HTTP_202_ACCEPTED)
         else:
             for chunks in batch_list:
-                ids += TaskHandler.store_embedding(collection_name, chunks, metadata, embedding_type)
+                TaskHandler.store_embedding(collection_name, chunks, metadata, embedding_type,ids)
             return Response({"message": "new index added",
                              "embedding_id_list": ids,
                              "warning": warning}, status=status.HTTP_200_OK)
@@ -108,8 +111,8 @@ class EmbeddingView(CreateAPIView):
             embedding_type = EmbederType.DEFULT.value
         return embedding_type
 
-    def check_meta_data(self, chunk_type, metadata):
+    def check_meta_data(self, chunks, metadata):
         warning = ""
-        if len(metadata) != len(chunk_type):
+        if len(metadata) != len(chunks):
             warning = f"Meta data was ignored chunk list and meta data should be of equal length"
         return warning

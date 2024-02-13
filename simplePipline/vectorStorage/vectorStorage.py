@@ -4,6 +4,7 @@ from llama_index import StorageContext, VectorStoreIndex, DocumentSummaryIndex
 from llama_index.vector_stores import ChromaVectorStore
 
 from simplePipline.baseclass import Baseclass
+from simplePipline.utils.utilities import log_debug
 
 
 class VectorStorage(Baseclass):
@@ -66,6 +67,7 @@ class ChromadbIndexVectorStorage(VectorStorage):
               collection_name,
               ids):
         collection = self.db.get_or_create_collection(collection_name)
+        log_debug(f"metadata: {metadata}")
         collection.add(ids=ids, embeddings=embeddings, documents=chunks, metadatas=metadata)
 
     def load(self, collection_name):

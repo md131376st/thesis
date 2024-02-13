@@ -92,7 +92,7 @@ class VectorStorageSerializer(serializers.Serializer):
     )
     metadata = serializers.ListField(
         child=serializers.DictField(
-            child=serializers.CharField()
+            child=serializers.JSONField()
         )
     )
     chunks_type = serializers.ChoiceField(

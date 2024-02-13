@@ -25,8 +25,8 @@ class BatchHandler(Baseclass):
 class EmbeddingBatchHandler(BatchHandler):
     def createBatchHandler(self, info, active_meta_data=True):
         chunks = info["chunks"]
-        model = info["model"]
         metaData = info["metadata"]
+        # log_debug(f"embbederlen(metadata): {len(metaData)} ")
         tokenCount = 0
         batch_chunks = []
         batch_meta_data = []
@@ -34,25 +34,37 @@ class EmbeddingBatchHandler(BatchHandler):
             text_count = self.token_count(chunk["text"])
             if (tokenCount + text_count < OpenAIRestrictions().maxToken
                     and len(self.batch) < OpenAIRestrictions().maxArray):
+                # log_debug(f"chunk added : {chunk}" )
                 batch_chunks.append(chunk)
                 if active_meta_data and len(metaData) > index:
                     batch_meta_data.append(metaData[index])
 
                 tokenCount += text_count
             else:
+                if len(batch_chunks) == 0:
+                    # log_debug(f"chunk added : {chunk}")
+                    batch_chunks.append(chunk)
+                    if active_meta_data and len(metaData) > index:
+                        # log_debug(f"index {index}")
+                        # log_debug(f"metadata {metaData[index]}")
+                        batch_meta_data.append(metaData[index])
+                # log_debug(f"batch_chunks : {batch_chunks}")
+                # log_debug(f"batch_meta_data : {batch_meta_data}")
                 self.batch.append({
                     'chunks': batch_chunks,
                     'metadata': batch_meta_data
                 })
-                batch_chunks.clear()
-                batch_meta_data.clear()
+                # log_debug(f" after add : {self.batch} ")
+                batch_chunks = []
+                batch_meta_data = []
                 tokenCount = 0
+                # log_debug(f" after clear : {self.batch} ")
         # last batch
         self.batch.append({
             'chunks': batch_chunks,
             'metadata': batch_meta_data
         })
-        log_debug(len(self.batch))
+        # log_debug(f"end of batch: {self.batch} ")
     def get_batch(self):
         return self.batch
 

@@ -2,6 +2,7 @@ import logging
 import random
 import string
 
+import uuid
 from fileService import settings
 from simplePipline.embeder.embeder import OpenAIEmbeder
 from simplePipline.preproccess.dataTransfer import DOCXtoHTMLDataTransfer, TransferType
@@ -12,18 +13,20 @@ from simplePipline.vectorStorage.vectorStorage import ChromadbIndexVectorStorage
 
 class TaskHandler:
     @staticmethod
-    def generate_random_string(length=8):
-        """Generate a random string of fixed length."""
-        letters_and_digits = string.ascii_letters + string.digits
-        return ''.join(random.choice(letters_and_digits) for i in range(length))
-
-    @staticmethod
     def ensure_id(chunks):
-        for chunk in chunks:
+        newchunk = []
+        for index, chunk in enumerate(chunks):
             if "id" not in chunk:
-                random_id = TaskHandler.generate_random_string()
-                chunk["id"] = random_id
-        return chunks
+                random_id = uuid.uuid4()
+                newchunk.append(
+                    {
+                        "text": chunk["text"],
+                        "id": str(random_id)
+                    }
+                )
+            else:
+                newchunk.append(chunk)
+        return newchunk
 
     @staticmethod
     def proccess_data(filename, is_async=True):
@@ -41,23 +44,23 @@ class TaskHandler:
             return None
 
     @staticmethod
-    def store_embedding(collection_name, chunks, metadata, embedding_type, ids=None, **kwargs):
-        if ids is None:
-            TaskHandler.ensure_id(chunks)
-            ids = [chunk['id'] for chunk in chunks["chunks"]]
+    def store_embedding(collection_name, chunks, metadata, embedding_type, ids, **kwargs):
+        log_debug(f"store_embedding len metadata:{len(metadata)} len chunks:{len(chunks)} ")
         if len(metadata) < len(chunks):
             metadata = None
+        log_debug(f"print ids {ids}")
+        ids = [chunk['id'] for chunk in chunks]
+        log_debug(f"print actual {ids}")
         texts = [chunk["text"] for chunk in chunks]
         embeder = OpenAIEmbeder(context=chunks)
         embeder.embedding(texts, model=embedding_type, **kwargs)
         chunk_embeddings = embeder.get_embedding()
 
-        vectorStore =ChromadbIndexVectorStorage(settings.CHROMA_DB)
+        vectorStore = ChromadbIndexVectorStorage(settings.CHROMA_DB)
         vectorStore.store(texts, chunk_embeddings,
                           metadata, collection_name, ids)
         return ids
 
     @staticmethod
     def feature_extraction(input_file, output_file, store, include_images):
-
         pass
