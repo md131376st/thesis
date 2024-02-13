@@ -113,3 +113,7 @@ class FeatureExtractionSerializer(serializers.Serializer):
     is_async = serializers.BooleanField()
     include_images = serializers.BooleanField()
     store = serializers.BooleanField()
+
+
+class CelerySerializer(serializers.Serializer):
+    id = serializers.UUIDField()

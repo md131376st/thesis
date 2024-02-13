@@ -1,11 +1,14 @@
 import logging
 from enum import Enum
 
+from celery import group
 from llama_index import ServiceContext
 
 from simplePipline.baseclass import Baseclass
 from openai import OpenAI
 from llama_index.embeddings import OpenAIEmbedding
+import tiktoken
+from simplePipline.tasks import call_embedding
 
 
 class Embeder(Baseclass):
@@ -34,16 +37,20 @@ class OpenAIEmbeder(Embeder):
         self.logger.debug("init open ai")
         self.client = OpenAI()
         self.logger.debug("finish init open ai")
+        self.reorderText = []
 
-    def embedding(self, model=EmbederType.OpenAI_3_s.value, **kwargs):
-        for chunk in self.context:
-            text = chunk["text"].replace("\n", " ").replace("$", " ")
-            self.logger.debug(text)
-            self.logger.debug("open ai result")
-            self.embeddings.append(self.client.embeddings.create(input=[text],
-                                                                 model=model).data[0].embedding)
+    def embedding(self, texts, model=EmbederType.OpenAI_3_s.value, **kwargs):
 
-        pass
+        if kwargs["is_async"]:
+            self.apply_embeddings(texts, model)
+        else:
+            for text in texts:
+                self.apply_embeddings(text, model)
+
+    def apply_embeddings(self, text, model):
+        self.embeddings.append(self.client.embeddings.create(input=text,
+                                                             model=model).data[0].embedding)
+        self.reorderText += text
 
 
 class LamaIndexEmbeder(Embeder):
@@ -57,7 +64,7 @@ class LamaIndexEmbeder(Embeder):
         else:
             self.service_context = ServiceContext.from_defaults(embed_model=self.embed_model)
 
-    def embedding(self, **kwargs):
+    def embedding(self, text, **kwargs):
         for chunk in self.context:
             text = chunk.text.replace("\n", " ").replace("$")
             self.embeddings.append(self.embed_model.get_text_embedding(text))

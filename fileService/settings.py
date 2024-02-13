@@ -41,6 +41,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', "redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', "redis://127.0.0.1:6379/0")
+
 # CELERY_BROKER_URL = 'redis://localhost:6379'
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_TIMEZONE = 'CET'
@@ -58,6 +59,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "filemanger.apps.FilemangerConfig",
     'celery',
+    'django_celery_results',
+    'simplePipline.apps.SimplePiplineConfig'
 ]
 
 MIDDLEWARE = [

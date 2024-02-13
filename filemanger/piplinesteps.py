@@ -19,7 +19,11 @@ class TaskHandler:
 
     @staticmethod
     def ensure_id(chunks):
-        return [chunk['id'] if 'id' in chunk else TaskHandler.generate_random_string() for chunk in chunks]
+        for chunk in chunks:
+            if "id" not in chunk:
+                random_id = TaskHandler.generate_random_string()
+                chunk["id"] = random_id
+        return chunks
 
     @staticmethod
     def proccess_data(filename, is_async=True):
@@ -37,22 +41,23 @@ class TaskHandler:
             return None
 
     @staticmethod
-    def store_embedding(collection_name, chunks, metadata, embedding_type, ids=None):
+    def store_embedding(collection_name, chunks, metadata, embedding_type, ids=None, **kwargs):
         if ids is None:
-            ids = TaskHandler.ensure_id(chunks)
+            TaskHandler.ensure_id(chunks)
+            ids = [chunk['id'] for chunk in chunks["chunks"]]
         if len(metadata) < len(chunks):
             metadata = None
         texts = [chunk["text"] for chunk in chunks]
         embeder = OpenAIEmbeder(context=chunks)
-        embeder.embedding(model=embedding_type)
+        embeder.embedding(texts, model=embedding_type, **kwargs)
         chunk_embeddings = embeder.get_embedding()
 
-        vectorStore = ChromadbIndexVectorStorage(settings.CHROMA_DB)
+        vectorStore =ChromadbIndexVectorStorage(settings.CHROMA_DB)
         vectorStore.store(texts, chunk_embeddings,
                           metadata, collection_name, ids)
         return ids
 
     @staticmethod
-    def feature_extraction(input_file,output_file, store, include_images):
+    def feature_extraction(input_file, output_file, store, include_images):
 
         pass

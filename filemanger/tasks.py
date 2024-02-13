@@ -1,11 +1,11 @@
-from celery import shared_task
+from celery import shared_task, group
 
 from filemanger.models import Document
 from filemanger.piplinesteps import TaskHandler
 from simplePipline.utils.utilities import log_debug, Get_json_filename, Get_html_filename
 
 
-@shared_task
+@shared_task()
 def process_document(filename):
     log_debug(f"Processing document: {filename}")
     try:
@@ -19,18 +19,36 @@ def process_document(filename):
     log_debug(f"Document processing complete: {filename}")
 
 
-@shared_task
-def manage_embedding(collection_name, chunks, metadata, embedding_type, ids):
+@shared_task()
+def manage_embedding(collection_name, batch_list, embedding_type):
     log_debug(f"create embedding chunks for collection: {collection_name}")
+    tasks = []
+    for batch in batch_list:
+        ids = [chunk['id'] for chunk in batch["chunks"]]
+        tasks.append(
+            embedding_task.s(
+                collection_name,
+                batch['chunks'],
+                batch['metadata'],
+                embedding_type,
+                ids
+            ))
+    task_group = group(tasks)
+    log_debug(f"end embedding chunks for collection: {collection_name}")
+    return task_group.apply_async()
+
+
+
+@shared_task()
+def embedding_task(collection_name, chunks, metadata, embedding_type, ids):
     TaskHandler.store_embedding(collection_name=collection_name,
                                 chunks=chunks,
                                 metadata=metadata,
                                 embedding_type=embedding_type,
-                                ids=ids)
-    log_debug(f"end embedding chunks for collection: {collection_name}")
+                                ids=ids, is_async=True)
 
 
-@shared_task
+@shared_task()
 def feature_extract_document(filename, include_images):
     log_debug(f"extract feature: {filename}")
     try:

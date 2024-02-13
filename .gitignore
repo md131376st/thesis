@@ -103,3 +103,4 @@ db.sqlite3
 /preprocces/
 /db/
 /py_dump/
+/dump.rdb
