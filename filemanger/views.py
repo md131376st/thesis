@@ -14,7 +14,7 @@ from .tasks import manage_embedding
 from fileService import settings
 from filemanger.piplinesteps import TaskHandler
 from filemanger.serializers import VectorStorageSerializer, \
-    ChunkType, CollectionSerializer
+    ChunkType, CollectionSerializer, RetrivalSerializer
 
 
 # Create your views here.
@@ -92,7 +92,7 @@ class EmbeddingView(CreateAPIView):
                              "warning": warning}, status=status.HTTP_202_ACCEPTED)
         else:
             for chunks in batch_list:
-                TaskHandler.store_embedding(collection_name, chunks, metadata, embedding_type,ids)
+                TaskHandler.store_embedding(collection_name, chunks, metadata, embedding_type, ids)
             return Response({"message": "new index added",
                              "embedding_id_list": ids,
                              "warning": warning}, status=status.HTTP_200_OK)
@@ -116,3 +116,25 @@ class EmbeddingView(CreateAPIView):
         if len(metadata) != len(chunks):
             warning = f"Meta data was ignored chunk list and meta data should be of equal length"
         return warning
+
+
+class classRetrivalView(CreateAPIView):
+    serializer_class = RetrivalSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            question = serializer.validated_data["question"]
+            classname = serializer.validated_data["className"]
+            embedding_type = serializer.validated_data["embedding_type"]
+            n_results = serializer.validated_data["n_results"]
+            result = TaskHandler.query_handler(question, classname, embedding_type, n_results)
+            return Response(data={
+                "answer": result
+            }, status=status.HTTP_200_OK)
+
+
+
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+

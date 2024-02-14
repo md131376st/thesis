@@ -175,7 +175,10 @@ if __name__ == '__main__':
                                                 "is_async": True,
                                                 "chunks": [
                                                     {
-                                                        "text": f"description: {description}, code: {value}  ",
+                                                        "text": json.dumps({
+                                                            "description": description,
+                                                            "code": value
+                                                        })
                                                     }
                                                 ],
                                                 "metadata": [metadata],

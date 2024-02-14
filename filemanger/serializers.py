@@ -117,3 +117,13 @@ class FeatureExtractionSerializer(serializers.Serializer):
 
 class CelerySerializer(serializers.Serializer):
     id = serializers.UUIDField()
+
+
+class RetrivalSerializer(serializers.Serializer):
+    question = serializers.CharField()
+    className = serializers.CharField()
+    embedding_type = serializers.ChoiceField(
+        choices=[(choice.value, choice.name) for choice in EmbederType],
+        default=EmbederType.DEFULT.value
+    )
+    n_results = serializers.IntegerField(default=1)

@@ -28,7 +28,7 @@ class EmbederType(Enum):
     OpenAI_3_s = "text-embedding-3-small"
     OpenAI_3_l = "text-embedding-3-large"
     OpenAI_2 = "text-embedding-ada-002"
-    DEFULT = "text-embedding-ada-002"
+    DEFULT = "text-embedding-3-large"
 
 
 class OpenAIEmbeder(Embeder):
@@ -44,8 +44,11 @@ class OpenAIEmbeder(Embeder):
         if kwargs["is_async"]:
             self.apply_embeddings(texts, model)
         else:
-            for text in texts:
-                self.apply_embeddings(text, model)
+            if isinstance(texts, list):
+                for text in texts:
+                    self.apply_embeddings(text, model)
+            else:
+                self.apply_embeddings(texts, model)
 
     def apply_embeddings(self, text, model):
         self.embeddings.append(self.client.embeddings.create(input=text,

@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # transformer = LlamaIndexTransformer(transformType=TransformType.HierarchicalNodeParser, context=data)
     # transformer.transform()
     # chunk = transformer.get_chunk()
-    vs = ChromadbLammaIndexVectorStorage(path="./test", loglevel=logging.DEBUG)
+    vs = ChromadbLammaIndexVectorStorage(path="../simplePipline/preproccess/test", loglevel=logging.DEBUG)
 
     vs.store(nodes=chunk, collection_name="test", service_context=LamaIndexEmbeder(chunk).get_service_context())
     # hi = vs.retrieve(question="Qual è il nome del progetto a cui si riferisce il documento?")

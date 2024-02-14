@@ -3,12 +3,14 @@ import random
 import string
 
 import uuid
+
 from fileService import settings
 from simplePipline.embeder.embeder import OpenAIEmbeder
 from simplePipline.preproccess.dataTransfer import DOCXtoHTMLDataTransfer, TransferType
 from simplePipline.preproccess.dataprocess.htmlDataPreprocess import HTMLDataPreprocess
 from simplePipline.utils.utilities import log_debug, Get_html_filename
 from simplePipline.vectorStorage.vectorStorage import ChromadbIndexVectorStorage
+import chromadb
 
 
 class TaskHandler:
@@ -64,3 +66,26 @@ class TaskHandler:
     @staticmethod
     def feature_extraction(input_file, output_file, store, include_images):
         pass
+
+    @staticmethod
+    def query_handler(question, classname, embedding_type, n_results):
+        # get question embedding
+        embeder = OpenAIEmbeder(question)
+        embeder.embedding(question, model=embedding_type, is_async=False)
+        embedding = embeder.get_embedding()
+        # retrive form db
+        db = chromadb.PersistentClient(settings.CHROMA_DB)
+        collection = db.get_collection(name=classname)
+        results = collection.query(query_embeddings=embedding,
+                                   n_results=n_results)
+        result = []
+        for text, metadata in zip(
+                results["documents"][0],
+                results["metadatas"][0]):
+            result.append(
+                {
+                    "text": text,
+                    "metadata": metadata
+                }
+            )
+        return result
