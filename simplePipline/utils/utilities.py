@@ -75,3 +75,7 @@ def Get_json_filename(filename):
 
 def Get_html_filename(filename):
     return f"{settings.PROCESSFIELS}/{str(filename.name).split('.')[0]}.html"
+
+
+def filter_empty_values(data):
+    return {k: v for k, v in data.items() if v != ''}

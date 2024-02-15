@@ -11,10 +11,14 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
 from pathlib import Path
-import environ
 
-env = environ.Env()
-environ.Env.read_env()
+from dotenv import load_dotenv
+
+# import environ
+#
+# env = environ.Env()
+# environ.Env.read_env()
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -173,7 +177,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440
 MEDIA_ROOT = 'files'
 MEDIA_URL = '/files/'
 PROCESSFIELS = 'preprocces'
-CHROMA_DB = os.environ.get('CHROMA_DB_PATH', env('CHROMA_DB_PATH'))
+CHROMA_DB = os.environ.get('CHROMA_DB_PATH', os.getenv('CHROMA_DB_PATH'))
 FEATURE_EXTRACT = 'py_dump'
 # set max side to 10 MB
 # DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
