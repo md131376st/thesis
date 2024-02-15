@@ -189,11 +189,13 @@ class ClassPackageCollector:
                 details = self.get_methods_for_class(class_name, package_info.package_name)
                 if details is not None:
                     class_info.update_class_details(details)
-
+                    # class_info.process_methods()
                     package_info.add_class(class_info)
             if len(package_info.classes) != 0:
                 self.packages.append(package_info)
-            return data["subPackageNames"]
+            for sub_package_name in data["subPackageNames"]:
+                print(sub_package_name)
+                self.collect_package_info(sub_package_name)
 
     def get_collected_data(self):
         return self.packages
@@ -227,40 +229,7 @@ class ClassPackageCollector:
 
 
 if __name__ == '__main__':
-    prefixes = ['com.intesasanpaolo.bear.sxdr0.metaconto.connector.storage.transformers',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.ws.anagrafe.didy',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.factory', 'com.intesasanpaolo.bear.sxdr0.metaconto.resource',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.kafka.producer',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.model.kafka', 'com.intesasanpaolo.bear.sxdr0.metaconto.model',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.controller.test',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.utils',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.model.notificator',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.ws',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.storage',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.internal',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.rest',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.model.jpa', 'com.intesasanpaolo.bear.sxdr0.metaconto.exception',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.internal.transformers',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.cache',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.kafka.consumer',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.gridfsmongo',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.model.predicate',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.service',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.ws.transformers',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.service.exception',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.jpa', 'com.intesasanpaolo.bear.sxdr0.metaconto.dto',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.gridfsmongo.transformers',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.service.kafka',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.kafka.processor',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.controller',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.connector.rest.transformers',
-              'com.intesasanpaolo.bear.sxdr0.metaconto.command', 'com.intesasanpaolo.bear.sxdr0.metaconto.assembler']
-    collected_data = []
-    for prefix in  prefixes:
-        collector = ClassPackageCollector()
-        subclasses = collector.collect_package_info(prefix)
-        if subclasses:
-            for subclass in subclasses:
-                collector = ClassPackageCollector()
-                subclasses_ = collector.collect_package_info(subclass)
-                collected_data += collector.get_collected_data()
+    prefix = "com.intesasanpaolo.bear.sxdr0.metaconto"
+    collector = ClassPackageCollector()
+    collector.collect_package_info(prefix)
+    collected_data = collector.get_collected_data()
