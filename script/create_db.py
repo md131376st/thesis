@@ -3,6 +3,7 @@ import pickle
 import tiktoken
 
 from simplePipline.batchHandler.batchHandler import OpenAIRestrictions
+from simplePipline.utils.utilities import log_debug
 
 sourceCodePath = "C:\\Users\\mona1\\Downloads\\core-r-metaconto-v1"
 
@@ -52,11 +53,17 @@ if __name__ == '__main__':
     # collected_data = collector.get_collected_data()
     collected_data = get_instance("temp.pkl")
     MethodDescriptions = []
-    for package in collected_data:
-        for classinfo in package.classes:
+    count = 0
+
+    for package in [collected_data[0]]:
+        for classinfo in [package.classes[0]]:
+            log_debug(count)
+            count += 1
             data = classinfo.get_class_methods_descriptions()
-            # print(classinfo)
-            MethodDescriptions.append(data)
+            if data is not None:
+                MethodDescriptions.append(data)
+                break
+            break
             # if token_count(str(classinfo.get_class_methods_descriptions())>OpenAIRestrictions.maxToken():
 
             # MethodDescriptions.append(

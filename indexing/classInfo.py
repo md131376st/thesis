@@ -153,14 +153,29 @@ class ClassInfo:
             log_debug(f"empty class function")
 
     def get_class_methods_descriptions(self):
-        descriptions = []
-        code = self.code
-        if code is not None:
-            # print(code)
-            for method in self.method_infos:
-                description = method.get_description()
-                # print(method.body)
-                if method.body is not None and description is not None:
-                    code=code.replace(method.body, description)
+        if self.code is None:
+            log_debug(self.class_name)
+            return None
 
+        code = self.code if self.code is not None else ""
+        code = code.replace("\n", " ").replace("\r", " ").replace(" ","")
+        log_debug("code to comper")
+        log_debug(code)
+        for method in self.method_infos:
+            description = method.get_description()
+            # Ensure 'method.body' and 'description' are not None before attempting to replace
+            if method.body is not None and description is not None:
+                try:
+                    method_body_str = str(method.body).replace("\n", " ").replace("\r", " ").replace("  ","")
+                    log_debug("method to replace")
+                    log_debug(method_body_str)
+                    description_str = str(description)
+                    if code.find(method_body_str) != -1:
+                        code = code.replace(method_body_str, description_str)
+                        log_debug("hi")
+                except Exception as e:
+
+                    log_debug(f"Error replacing method body: {e} {description}, {method.methodName}")
+
+        # Return the modified code
         return code
