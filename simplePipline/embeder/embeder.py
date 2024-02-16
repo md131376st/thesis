@@ -39,9 +39,9 @@ class OpenAIEmbeder(Embeder):
         self.logger.debug("finish init open ai")
         self.reorderText = []
 
-    def embedding(self, texts, model=EmbederType.OpenAI_3_s.value, **kwargs):
+    def embedding(self, texts, model=EmbederType.OpenAI_3_s.value, is_async=False):
 
-        if kwargs["is_async"]:
+        if is_async:
             self.apply_embeddings(texts, model)
         else:
             if isinstance(texts, list):

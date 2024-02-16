@@ -64,9 +64,9 @@ class ChromadbIndexVectorStorage(VectorStorage):
         self.queryEngine = None
 
     def store(self, chunks, embeddings, metadata,
-              collection_name,
+              collection_name, collection_metadata,
               ids):
-        collection = self.db.get_or_create_collection(collection_name)
+        collection = self.db.get_or_create_collection(collection_name, metadatas=metadata)
         log_debug(f"metadata: {metadata}")
         collection.add(ids=ids, embeddings=embeddings, documents=chunks, metadatas=metadata)
 

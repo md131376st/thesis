@@ -21,11 +21,11 @@ def process_document(filename):
 
 @shared_task()
 def manage_embedding(collection_name, batch_list, embedding_type):
-    log_debug(f"create embedding chunks for collection: {collection_name}")
+    # log_debug(f"create embedding chunks for collection: {collection_name}")
     tasks = []
-    log_debug(f"batch send: {batch_list}")
+    # log_debug(f"batch send: {batch_list}")
     for batch in batch_list:
-        log_debug(f"chunks: {batch['chunks']} \n, metadata: {batch['metadata']} ")
+        # log_debug(f"chunks: {batch['chunks']} \n, metadata: {batch['metadata']} ")
         ids = [chunk['id'] for chunk in batch["chunks"]]
         tasks.append(
             embedding_task.s(
@@ -36,17 +36,14 @@ def manage_embedding(collection_name, batch_list, embedding_type):
                 ids
             ))
     task_group = group(tasks)
-    log_debug(f"end embedding chunks for collection: {collection_name}")
+    # log_debug(f"end embedding chunks for collection: {collection_name}")
     return task_group.apply_async()
 
 
 @shared_task()
 def embedding_task(collection_name, chunks, metadata, embedding_type, ids):
-    TaskHandler.store_embedding(collection_name=collection_name,
-                                chunks=chunks,
-                                metadata=metadata,
-                                embedding_type=embedding_type,
-                                ids=ids, is_async=True)
+    TaskHandler.store_embedding(collection_name=collection_name, chunks=chunks, metadata=metadata,
+                                embedding_type=embedding_type, ids=ids, is_async=True)
 
 
 @shared_task()

@@ -104,5 +104,8 @@ class ClassInfo:
         except Exception as e:
             log_debug(f"An error retrieving method info for {method_name}: {e}")
 
-    def process_methods(self):
+    def generate_class_index(self):
+        for method in self.method_infos:
+            method.set_description()
+
         pass
