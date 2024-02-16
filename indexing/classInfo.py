@@ -158,7 +158,7 @@ class ClassInfo:
             return None
 
         code = self.code if self.code is not None else ""
-        code = code.replace("\n", " ").replace("\r", " ").replace(" ","")
+        code = code.replace('\r\n', '\n')
         log_debug("code to comper")
         log_debug(code)
         for method in self.method_infos:
@@ -166,7 +166,7 @@ class ClassInfo:
             # Ensure 'method.body' and 'description' are not None before attempting to replace
             if method.body is not None and description is not None:
                 try:
-                    method_body_str = str(method.body).replace("\n", " ").replace("\r", " ").replace("  ","")
+                    method_body_str = str(method.body).replace('\r\n', '\n')
                     log_debug("method to replace")
                     log_debug(method_body_str)
                     description_str = str(description)
