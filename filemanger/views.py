@@ -44,8 +44,9 @@ class EmbeddingView(CreateAPIView):
             chunks = serializer.validated_data['chunks']
             is_async = serializer.validated_data['is_async']
             metadata = serializer.validated_data['metadata']
-            log_debug(f"metadataview={metadata}")
-            log_debug(f"len metadataview={len(metadata)}")
+            collection_metadata = serializer.validated_data['collection_metadata']
+            # log_debug(f"metadataview={metadata}")
+            # log_debug(f"len metadataview={len(metadata)}")
 
             warning = self.check_meta_data(chunks, metadata)
 
@@ -53,7 +54,7 @@ class EmbeddingView(CreateAPIView):
 
             if chunk_type == ChunkType.TEXT.value:
                 return self.text_chunks(chunks, collection_name, embedding_type,
-                                        is_async, metadata, warning)
+                                        is_async, metadata, warning, collection_metadata)
 
             elif chunk_type == ChunkType.CODE.value:
                 return Response({"message": "new index added"}, status=status.HTTP_200_OK)
@@ -69,7 +70,13 @@ class EmbeddingView(CreateAPIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def text_chunks(self, chunks, collection_name, embedding_type, is_async, metadata, warning):
+    def text_chunks(self, chunks,
+                    collection_name,
+                    embedding_type,
+                    is_async,
+                    metadata,
+                    warning,
+                    collection_metadata):
         activeMetaData = False if warning else True
         chunks = TaskHandler.ensure_id(chunks)
         ids = [chunk['id'] for chunk in chunks]
@@ -83,16 +90,24 @@ class EmbeddingView(CreateAPIView):
         )
 
         batch_list = batch.get_batch()
-        log_debug(f"batch_text: {batch_list}")
+        # log_debug(f"batch_text: {batch_list}")
         if is_async:
-            taskId = manage_embedding.delay(collection_name, batch_list, embedding_type).id
+            taskId = manage_embedding.delay(collection_name,
+                                            batch_list,
+                                            embedding_type,
+                                            collection_metadata).id
             return Response({"message": "manage embedding added to task enqueued ",
                              "embedding_id_list": ids,
                              "taskId": taskId,
                              "warning": warning}, status=status.HTTP_202_ACCEPTED)
         else:
             for chunks in batch_list:
-                TaskHandler.store_embedding(collection_name, chunks, metadata, embedding_type, ids)
+                TaskHandler.store_embedding(collection_name,
+                                            chunks,
+                                            metadata,
+                                            embedding_type,
+                                            collection_metadata,
+                                            False)
             return Response({"message": "new index added",
                              "embedding_id_list": ids,
                              "warning": warning}, status=status.HTTP_200_OK)
@@ -137,4 +152,3 @@ class classRetrivalView(CreateAPIView):
 
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

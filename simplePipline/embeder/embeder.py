@@ -9,6 +9,7 @@ from openai import OpenAI
 from llama_index.embeddings import OpenAIEmbedding
 import tiktoken
 from simplePipline.tasks import call_embedding
+from simplePipline.utils.utilities import log_debug
 
 
 class Embeder(Baseclass):
@@ -40,20 +41,16 @@ class OpenAIEmbeder(Embeder):
         self.reorderText = []
 
     def embedding(self, texts, model=EmbederType.OpenAI_3_s.value, is_async=False):
-
-        if is_async:
-            self.apply_embeddings(texts, model)
+        if isinstance(texts, list):
+            for text in texts:
+                self.apply_embeddings(text, model)
         else:
-            if isinstance(texts, list):
-                for text in texts:
-                    self.apply_embeddings(text, model)
-            else:
-                self.apply_embeddings(texts, model)
+            self.apply_embeddings(texts, model)
 
     def apply_embeddings(self, text, model):
-        self.embeddings.append(self.client.embeddings.create(input=text,
-                                                             model=model).data[0].embedding)
-        self.reorderText += text
+        openaiembeding = self.client.embeddings.create(input=text,
+                                                       model=model).data[0].embedding
+        self.embeddings.append(openaiembeding)
 
 
 class LamaIndexEmbeder(Embeder):

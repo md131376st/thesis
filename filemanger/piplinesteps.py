@@ -46,8 +46,8 @@ class TaskHandler:
             return None
 
     @staticmethod
-    def store_embedding(collection_name, chunks, metadata, embedding_type, ids, is_async=False):
-        log_debug(f"store_embedding len metadata:{len(metadata)} len chunks:{len(chunks)} ")
+    def store_embedding(collection_name, chunks, metadata, embedding_type, collection_metadata, is_async=False):
+        # log_debug(f"store_embedding len metadata:{len(metadata)} len chunks:{len(chunks)} ")
         if len(metadata) < len(chunks):
             metadata = None
         ids = [chunk['id'] for chunk in chunks]
@@ -55,10 +55,13 @@ class TaskHandler:
         embeder = OpenAIEmbeder(context=chunks)
         embeder.embedding(texts, model=embedding_type, is_async=is_async)
         chunk_embeddings = embeder.get_embedding()
+        log_debug(
+            f"len of chunk_embeddings: {len(chunk_embeddings)}, len of texts: {len(texts)} , len of chunks: {len(ids)}")
 
         vectorStore = ChromadbIndexVectorStorage(settings.CHROMA_DB)
         vectorStore.store(texts, chunk_embeddings,
-                          metadata, collection_name, ids)
+                          metadata, collection_name, collection_metadata, ids)
+        log_debug(f"end embedding chunks for collection: {collection_name}")
         return ids
 
     @staticmethod

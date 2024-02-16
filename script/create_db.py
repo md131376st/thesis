@@ -27,6 +27,11 @@ def create_db(prefix, save=False):
     # save ParserInfo
     if save:
         save_instance("temp.pkl", data)
+    # generate descriptions for methods
+    for package in collected_data:
+        for classinfo in package.classes:
+            classinfo.generate_class_index()
+    # save in chroma_db
 
 
 if __name__ == '__main__':
@@ -34,11 +39,12 @@ if __name__ == '__main__':
     # collector = ClassPackageCollector(sourceCodePath)
     # collector.collect_package_info(prefix)
     # collected_data = collector.get_collected_data()
-    collected_data = get_instance("hi.pkl")
+    collected_data = get_instance("temp.pkl")
     for package in collected_data:
         for classinfo in package.classes:
-            classinfo.generate_class_index()
+            classinfo.generate_class_embedding()
 
-    save_instance("temp.pkl" ,collected_data)
+
+    # save_instance("temp.pkl" ,collected_data)
 
 

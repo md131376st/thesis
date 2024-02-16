@@ -6,6 +6,33 @@ from indexing.methodInfo import MethodInfo
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 
 
+def generate_embeddings(chunks,
+                        metadata,
+                        collection_name,
+                        collection_metadata):
+    try:
+        response = requests.request("POST",
+                                    f"http://localhost:8000/embedding",
+                                    headers={"Content-Type": "application/json"},
+                                    data=json.dumps(
+                                        {
+                                            "collection_name": f"{collection_name}",
+                                            "is_async": True,
+                                            "chunks": chunks,
+                                            "metadata": metadata,
+                                            "collection_metadata": collection_metadata,
+                                            "chunks_type": "txt",
+                                            "embedding_type": "text-embedding-3-large"
+                                        }
+                                    ))
+        if response.status_code != 202:
+            log_debug(f"error: {response}")
+    except Exception as e:
+        log_debug(f"error retrieving embedding for {collection_name}: {e} ")
+
+    pass
+
+
 class ClassInfo:
     def __init__(self, class_name, path):
         self.sourceCodePath = path
@@ -108,4 +135,19 @@ class ClassInfo:
         for method in self.method_infos:
             method.set_description()
 
-        pass
+    def generate_class_embedding(self):
+        chunks = []
+        metadata = []
+        if self.method_infos:
+            for method in self.method_infos:
+                chunks.append(
+                    {
+                        "text": method.get_description()
+                    }
+                )
+                metadata.append(method.get_meta_data())
+            collection_name = self.class_name
+            collection_metadata = self.get_meta_data()
+            generate_embeddings(chunks, metadata, collection_name, collection_metadata)
+        else:
+            log_debug(f"empty class function")

@@ -84,6 +84,9 @@ class ChunkType(Enum):
 
 class VectorStorageSerializer(serializers.Serializer):
     collection_name = serializers.CharField()
+    collection_metadata = serializers.DictField(
+        child=serializers.JSONField()
+    )
     is_async = serializers.BooleanField()
     chunks = serializers.ListField(
         child=serializers.DictField(

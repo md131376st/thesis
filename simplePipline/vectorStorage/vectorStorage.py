@@ -63,12 +63,22 @@ class ChromadbIndexVectorStorage(VectorStorage):
         self.index = None
         self.queryEngine = None
 
-    def store(self, chunks, embeddings, metadata,
-              collection_name, collection_metadata,
+    def store(self, chunks,
+              embeddings,
+              metadata,
+              collection_name,
+              collection_metadata,
               ids):
-        collection = self.db.get_or_create_collection(collection_name, metadatas=metadata)
-        log_debug(f"metadata: {metadata}")
-        collection.add(ids=ids, embeddings=embeddings, documents=chunks, metadatas=metadata)
+        if not collection_metadata:
+            # log_debug("create empty collection metadata")
+            collection = self.db.get_or_create_collection(collection_name)
+        else:
+            # log_debug("create collection ")
+            collection = self.db.get_or_create_collection(collection_name, metadata=collection_metadata)
+        if not metadata:
+            collection.add(ids=ids, embeddings=embeddings, documents=chunks)
+        else:
+            collection.add(ids=ids, embeddings=embeddings, documents=chunks, metadatas=metadata)
 
     def load(self, collection_name):
         return self.db.get_or_create_collection(collection_name)

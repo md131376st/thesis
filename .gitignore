@@ -104,3 +104,4 @@ db.sqlite3
 /db/
 /py_dump/
 /dump.rdb
+/dbfunctional/

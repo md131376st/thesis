@@ -88,8 +88,9 @@ class MethodInfo:
         if self.description is None:
             add_string_to_file("retry_methodName.txt", f"{self.methodName}")
 
-    def get_embedding_data(self):
-        pass
+    def get_description(self):
+        return self.description
+
 
     def generate_description(self):
         try:

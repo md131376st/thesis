@@ -8,8 +8,8 @@ from simplePipline.utils.utilities import log_debug
 
 class OpenAIRestrictions:
     def __init__(self):
-        # self.maxToken = 8192
-        self.maxToken = 583
+        self.maxToken = 8192
+        # self.maxToken = 583
         self.maxArray = 2048
 
 
@@ -48,8 +48,8 @@ class EmbeddingBatchHandler(BatchHandler):
                         # log_debug(f"index {index}")
                         # log_debug(f"metadata {metaData[index]}")
                         batch_meta_data.append(metaData[index])
-                # log_debug(f"batch_chunks : {batch_chunks}")
-                # log_debug(f"batch_meta_data : {batch_meta_data}")
+                log_debug(f"batch_chunks : {len(batch_chunks)}")
+                log_debug(f"batch_meta_data : {len(batch_meta_data)}")
                 self.batch.append({
                     'chunks': batch_chunks,
                     'metadata': batch_meta_data
@@ -64,7 +64,8 @@ class EmbeddingBatchHandler(BatchHandler):
             'chunks': batch_chunks,
             'metadata': batch_meta_data
         })
-        # log_debug(f"end of batch: {self.batch} ")
+        log_debug(f"end of batch: {len(self.batch)} ")
+
     def get_batch(self):
         return self.batch
 
