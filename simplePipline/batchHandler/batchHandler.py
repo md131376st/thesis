@@ -12,6 +12,10 @@ class OpenAIRestrictions:
         # self.maxToken = 583
         self.maxArray = 2048
 
+    def token_count(self, text):
+        encoding = tiktoken.get_encoding("cl100k_base")
+        return len(encoding.encode(text))
+
 
 class BatchHandler(Baseclass):
     def __init__(self, loglevel=logging.INFO):
@@ -19,6 +23,15 @@ class BatchHandler(Baseclass):
         self.batch = []
 
     def createBatchHandler(self, info):
+        pass
+
+
+class ClassDescriptionBatchHandler(BatchHandler):
+    def createBatchHandler(self, info):
+        restraints = OpenAIRestrictions()
+        tokenCount = restraints.token_count(info)
+        if tokenCount>restraints.maxToken:
+            pass
         pass
 
 
@@ -30,10 +43,11 @@ class EmbeddingBatchHandler(BatchHandler):
         tokenCount = 0
         batch_chunks = []
         batch_meta_data = []
+        restraints = OpenAIRestrictions()
         for index, chunk in enumerate(chunks):
-            text_count = self.token_count(chunk["text"])
-            if (tokenCount + text_count < OpenAIRestrictions().maxToken
-                    and len(self.batch) < OpenAIRestrictions().maxArray):
+            text_count = restraints.token_count(chunk["text"])
+            if (tokenCount + text_count < restraints.maxToken
+                    and len(self.batch) < restraints.maxArray):
                 # log_debug(f"chunk added : {chunk}" )
                 batch_chunks.append(chunk)
                 if active_meta_data and len(metaData) > index:

@@ -151,3 +151,16 @@ class ClassInfo:
             generate_embeddings(chunks, metadata, collection_name, collection_metadata)
         else:
             log_debug(f"empty class function")
+
+    def get_class_methods_descriptions(self):
+        descriptions = []
+        code = self.code
+        if code is not None:
+            # print(code)
+            for method in self.method_infos:
+                description = method.get_description()
+                # print(method.body)
+                if method.body is not None and description is not None:
+                    code=code.replace(method.body, description)
+
+        return code

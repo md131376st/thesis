@@ -91,6 +91,8 @@ class MethodInfo:
     def get_description(self):
         return self.description
 
+    def get_methodName(self):
+        return self.methodName
 
     def generate_description(self):
         try:

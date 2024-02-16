@@ -1,5 +1,8 @@
 from indexing.packageCollector import ClassPackageCollector
 import pickle
+import tiktoken
+
+from simplePipline.batchHandler.batchHandler import OpenAIRestrictions
 
 sourceCodePath = "C:\\Users\\mona1\\Downloads\\core-r-metaconto-v1"
 
@@ -12,6 +15,11 @@ def save_instance(fileName, instances):
 def get_instance(fileName):
     with open(fileName, 'rb') as file:  # Use 'rb' to read in binary mode
         return pickle.load(file)
+
+
+def token_count(text):
+    encoding = tiktoken.get_encoding("cl100k_base")
+    return len(encoding.encode(text))
 
 
 def parse_package(prefix):
@@ -31,7 +39,10 @@ def create_db(prefix, save=False):
     for package in collected_data:
         for classinfo in package.classes:
             classinfo.generate_class_index()
-    # save in chroma_db
+    # create Embedings
+    for package in collected_data:
+        for classinfo in package.classes:
+            classinfo.generate_class_embedding()
 
 
 if __name__ == '__main__':
@@ -40,11 +51,19 @@ if __name__ == '__main__':
     # collector.collect_package_info(prefix)
     # collected_data = collector.get_collected_data()
     collected_data = get_instance("temp.pkl")
+    MethodDescriptions = []
     for package in collected_data:
         for classinfo in package.classes:
-            classinfo.generate_class_embedding()
+            data = classinfo.get_class_methods_descriptions()
+            # print(classinfo)
+            MethodDescriptions.append(data)
+            # if token_count(str(classinfo.get_class_methods_descriptions())>OpenAIRestrictions.maxToken():
 
+            # MethodDescriptions.append(
+            #     {
+            #         "data": classinfo.get_class_methods_descriptions(),
+            #         "length": token_count(str(classinfo.get_class_methods_descriptions()))
+            #     }
+            # )
 
     # save_instance("temp.pkl" ,collected_data)
-
-
