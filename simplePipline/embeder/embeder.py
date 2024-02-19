@@ -41,16 +41,20 @@ class OpenAIEmbeder(Embeder):
         self.reorderText = []
 
     def embedding(self, texts, model=EmbederType.OpenAI_3_s.value, is_async=False):
-        if isinstance(texts, list):
-            for text in texts:
-                self.apply_embeddings(text, model)
-        else:
+        if is_async:
             self.apply_embeddings(texts, model)
+        else:
+            if isinstance(texts, list):
+                for text in texts:
+                    self.apply_embeddings(text, model)
+            else:
+                self.apply_embeddings(texts, model)
 
     def apply_embeddings(self, text, model):
         openaiembeding = self.client.embeddings.create(input=text,
-                                                       model=model).data[0].embedding
-        self.embeddings.append(openaiembeding)
+                                                       model=model).data
+        embedding = [embed.embedding for embed in openaiembeding]
+        self.embeddings += embedding
 
 
 class LamaIndexEmbeder(Embeder):

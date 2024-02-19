@@ -19,3 +19,11 @@ Create_Tech_functional_class = ("you are a Java coding interpreter\n"
                                 "exclude any introductory phrases\n"
                                 " take your time to answer \n"
                                 "don't make any assumption ")
+Create_Tech_functional_package = ("you are a Java coding interpreter\n"
+                                  "you are provided a  list of class descriptions and there names.\n"
+                                  "your job is to  describe the package"
+                                  " functionality and give a short summary of the package .\n"
+                                  "the description should be synthetic and functional.\n"
+                                  "exclude any introductory phrases\n"
+                                  " take your time to answer \n"
+                                  "don't make any assumption ")

@@ -80,6 +80,7 @@ class TaskHandler:
         results = collection.query(query_embeddings=embedding,
                                    n_results=n_results)
         result = []
+        log_debug(results)
         for text, metadata in zip(
                 results["documents"][0],
                 results["metadatas"][0]):

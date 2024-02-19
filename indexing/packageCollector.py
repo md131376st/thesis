@@ -2,7 +2,7 @@ import json
 
 import requests
 
-from indexing.classInfo import ClassInfo
+from indexing.classInfo import ClassInfo, generate_embeddings
 from indexing.packageInfo import PackageInfo
 from simplePipline.utils.utilities import log_debug
 
@@ -11,6 +11,9 @@ class ClassPackageCollector:
     def __init__(self, path):
         self.packages = []
         self.sourceCodePath = path
+
+    def set_packages(self, packages):
+        self.packages = packages
 
     def packet_info_call(self, prefix):
         try:
@@ -80,3 +83,26 @@ class ClassPackageCollector:
         except Exception as e:
             log_debug(f"An error while classinfo   for {package_name}.{class_name}: {e}")
             return None
+
+    def generate_codebase_embeddings(self):
+        chunks = []
+        metadata = []
+
+        for package in self.packages:
+            chunks.append(
+                {
+                    "text": package.get_description()
+                }
+            )
+            metadata.append(package.get_meta_data())
+        else:
+            log_debug(f"empty class function")
+        collection_name = "MyCodeBase"
+        collection_metadata = self.get_meta_data()
+        generate_embeddings(chunks, metadata, collection_name, collection_metadata)
+
+    def get_meta_data(self):
+        metadata = {
+            "package_number": len(self.packages)
+        }
+        return metadata

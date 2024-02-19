@@ -1,3 +1,4 @@
+from indexing.classInfo import generate_embeddings
 from indexing.packageCollector import ClassPackageCollector
 import pickle
 import tiktoken
@@ -44,6 +45,22 @@ def create_db(prefix, save=False):
     for package in collected_data:
         for classinfo in package.classes:
             classinfo.generate_class_embedding()
+    #   generate class descriptions
+    for package in collected_data:
+        for classinfo in package.classes:
+            description = classinfo.generate_description()
+            if description:
+                classinfo.set_description(description)
+                log_debug(f"{classinfo.class_name}")
+    #  generate embedding_packages
+    for package in collected_data:
+        package.generate_package_embeddings()
+    #  generate packages descriptions
+    for package in collected_data:
+        description = package.generate_description()
+        if description:
+            package.set_description(description)
+            log_debug(f"{package.package_name}")
 
 
 if __name__ == '__main__':
@@ -51,15 +68,21 @@ if __name__ == '__main__':
     # collector = ClassPackageCollector(sourceCodePath)
     # collector.collect_package_info(prefix)
     # collected_data = collector.get_collected_data()
-    collected_data = get_instance("temp.pkl")
-    classDescriptions = []
-    count = 0
-
+    # descriptions = []
+    collected_data = get_instance("temp2.pkl")
+    cpc = ClassPackageCollector(sourceCodePath)
+    cpc.set_packages(collected_data)
+    cpc.generate_codebase_embeddings()
+    for package in collected_data:
+        package.generate_package_embeddings()
     for package in collected_data:
         for classinfo in package.classes:
-            description = classinfo.generate_description()
-            if description:
-                classinfo.set_description(description)
-                log_debug(f"{classinfo.class_name}")
+            classinfo.generate_class_embedding()
 
-    save_instance("temp1.pkl", collected_data)
+
+    # for package in collected_data:
+    #     description = package.generate_description()
+    #     if description:
+    #         package.set_description(description)
+    #         log_debug(f"{package.package_name}")
+    # save_instance("temp2.pkl", collected_data)
