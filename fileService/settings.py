@@ -179,5 +179,6 @@ MEDIA_URL = '/files/'
 PROCESSFIELS = 'preprocces'
 CHROMA_DB = os.environ.get('CHROMA_DB_PATH', os.getenv('CHROMA_DB_PATH'))
 FEATURE_EXTRACT = 'py_dump'
+INDEXROOT = "MyCodeBase"
 # set max side to 10 MB
 # DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760

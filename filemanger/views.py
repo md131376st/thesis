@@ -140,7 +140,7 @@ class classRetrivalView(CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             question = serializer.validated_data["question"]
-            classname = serializer.validated_data["className"]
+            classname = serializer.validated_data.get("className")
             embedding_type = serializer.validated_data["embedding_type"]
             n_results = serializer.validated_data["n_results"]
             result = TaskHandler.query_handler(question, classname, embedding_type, n_results)

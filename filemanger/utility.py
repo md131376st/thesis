@@ -20,3 +20,6 @@ def get_class_collection_name(qualified_class_name):
         temp_name += "a1"  # Add characters to meet the min length if necessary
 
     return temp_name
+
+def get_package_name(package_name):
+    return package_name.replace(".", "-")[-60:]
