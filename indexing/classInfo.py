@@ -1,8 +1,10 @@
 import json
+import os
 
 import requests
 
 from indexing.methodInfo import MethodInfo
+from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 
 
@@ -153,29 +155,66 @@ class ClassInfo:
             log_debug(f"empty class function")
 
     def get_class_methods_descriptions(self):
-        if self.code is None:
-            log_debug(self.class_name)
-            return None
-
-        code = self.code if self.code is not None else ""
-        code = code.replace('\r\n', '\n')
-        log_debug("code to comper")
-        log_debug(code)
+        descriptions = ""
         for method in self.method_infos:
-            description = method.get_description()
-            # Ensure 'method.body' and 'description' are not None before attempting to replace
-            if method.body is not None and description is not None:
-                try:
-                    method_body_str = str(method.body).replace('\r\n', '\n')
-                    log_debug("method to replace")
-                    log_debug(method_body_str)
-                    description_str = str(description)
-                    if code.find(method_body_str) != -1:
-                        code = code.replace(method_body_str, description_str)
-                        log_debug("hi")
-                except Exception as e:
-
-                    log_debug(f"Error replacing method body: {e} {description}, {method.methodName}")
+            descriptions += (f"Method name: {method.signature} \n"
+                             f"{method.get_description()}\n")
 
         # Return the modified code
-        return code
+        return descriptions
+
+    def description_class_prompt_data(self):
+        prompt_data = (f"Class Name: {self.class_name} \n"
+                       f"class attributes: {self.class_attributs()}\n"
+                       f"methods:\n{self.get_class_methods_descriptions()}")
+        return prompt_data
+
+    def generate_description(self):
+        try:
+            # Corrected syntax for getting environment variable
+            api_key = os.environ.get("OPENAI_API_KEY")
+            if not api_key:
+                log_debug("OPENAI_API_KEY is not set in environment variables.")
+                return None  # Return None if API key is not found
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}"
+            }
+            payload = {
+                "model": "gpt-4-turbo-preview",
+                "messages": [
+                    {"role": "system", "content": f"{Create_Tech_functional_class}"},
+                    {"role": "user", "content": f"{self.description_class_prompt_data}"},
+                ],
+                "max_tokens": 1024,
+                "temperature": 0
+            }
+
+            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+            response.raise_for_status()  # Raises an exception for 4XX/5XX responses
+
+            # Parsing the response assuming the structure is as expected
+            return response.json()["choices"][0]['message']['content']
+
+        except requests.exceptions.RequestException as e:
+            # Handle network-related errors here
+            log_debug(f"An error occurred while making the request: {e}")
+        except KeyError as e:
+            # Handle errors related to accessing parts of the response
+            log_debug(f"An error occurred while parsing the response: {e}")
+        except Exception as e:
+            # Handle other possible exceptions
+            log_debug(f"An unexpected error occurred: {e}")
+
+            # Return None if the function cannot complete as expected due to any error
+        return None
+
+    def set_description(self, description):
+        self.description = description
+
+    def class_attributs(self):
+        fields = ""
+        for field in self.fields:
+            fields += f"\n{field} "
+        return fields

@@ -52,25 +52,14 @@ if __name__ == '__main__':
     # collector.collect_package_info(prefix)
     # collected_data = collector.get_collected_data()
     collected_data = get_instance("temp.pkl")
-    MethodDescriptions = []
+    classDescriptions = []
     count = 0
 
-    for package in [collected_data[0]]:
-        for classinfo in [package.classes[0]]:
-            log_debug(count)
-            count += 1
-            data = classinfo.get_class_methods_descriptions()
-            if data is not None:
-                MethodDescriptions.append(data)
-                break
-            break
-            # if token_count(str(classinfo.get_class_methods_descriptions())>OpenAIRestrictions.maxToken():
+    for package in collected_data:
+        for classinfo in package.classes:
+            description = classinfo.generate_description()
+            if description:
+                classinfo.set_description(description)
+                log_debug(f"{classinfo.class_name}")
 
-            # MethodDescriptions.append(
-            #     {
-            #         "data": classinfo.get_class_methods_descriptions(),
-            #         "length": token_count(str(classinfo.get_class_methods_descriptions()))
-            #     }
-            # )
-
-    # save_instance("temp.pkl" ,collected_data)
+    save_instance("temp1.pkl", collected_data)
