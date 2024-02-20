@@ -2,7 +2,7 @@ from rest_framework.generics import RetrieveDestroyAPIView
 from rest_framework.response import Response
 
 from fileService.celery import app
-from filemanger.serializers import CelerySerializer
+from filemanger.serializer.celerySerializer import CelerySerializer
 
 
 class CeleryManger(RetrieveDestroyAPIView):

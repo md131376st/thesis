@@ -1,32 +1,17 @@
 import logging
 
-import tiktoken
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
-
-from simplePipline.batchHandler.batchHandler import EmbeddingBatchHandler
-from simplePipline.embeder.embeder import LamaIndexEmbeder, EmbederType
-from simplePipline.utils.utilities import log_debug
-from simplePipline.vectorStorage.vectorStorage import ChromadbLammaIndexVectorStorage
-from .tasks import manage_embedding
 
 from fileService import settings
 from filemanger.piplinesteps import TaskHandler
-from filemanger.serializers import VectorStorageSerializer, \
-    ChunkType, CollectionSerializer, RetrivalSerializer
-
-
-# Create your views here.
-
-
-class CollectionInfo(ListAPIView):
-    serializer_class = CollectionSerializer
-
-    def get_queryset(self):
-        vectorStore = ChromadbLammaIndexVectorStorage(settings.CHROMA_DB, loglevel=logging.INFO)
-        collections = vectorStore.db.list_collections()
-        return [{"collection_name": collection.name} for collection in collections]
+from filemanger.Types import ChunkType
+from filemanger.serializer.EmbeddingSerializer import VectorStorageSerializer
+from filemanger.tasks import manage_embedding
+from simplePipline.batchHandler.batchHandler import EmbeddingBatchHandler
+from simplePipline.embeder.embeder import LamaIndexEmbeder, EmbederType
+from simplePipline.vectorStorage.vectorStorage import ChromadbLammaIndexVectorStorage
 
 
 class EmbeddingView(CreateAPIView):
@@ -131,24 +116,3 @@ class EmbeddingView(CreateAPIView):
         if len(metadata) != len(chunks):
             warning = f"Meta data was ignored chunk list and meta data should be of equal length"
         return warning
-
-
-class classRetrivalView(CreateAPIView):
-    serializer_class = RetrivalSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            question = serializer.validated_data["question"]
-            classname = serializer.validated_data.get("className")
-            embedding_type = serializer.validated_data["embedding_type"]
-            n_results = serializer.validated_data["n_results"]
-            result = TaskHandler.query_handler(question, classname, embedding_type, n_results)
-            return Response(data={
-                "answer": result
-            }, status=status.HTTP_200_OK)
-
-
-
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

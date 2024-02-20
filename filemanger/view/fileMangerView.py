@@ -10,7 +10,8 @@ from fileService import settings
 from filemanger.models import Document
 from filemanger.parser import LimitedFileSizeParser
 from filemanger.piplinesteps import TaskHandler
-from filemanger.serializers import DocumentSerializer, PiplineSerializer, ProcessSerializer, FeatureExtractionSerializer
+from filemanger.serializer.DocumentSerializer import DocumentSerializer, PiplineSerializer, ProcessSerializer, \
+    FeatureExtractionSerializer
 from filemanger.tasks import process_document, feature_extract_document
 from simplePipline.preproccess.dataTransfer import DOCXtoHTMLDataTransfer, TransferType
 from simplePipline.preproccess.dataprocess.htmlDataPreprocess import HTMLDataPreprocess
