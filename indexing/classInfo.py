@@ -2,8 +2,11 @@ import json
 import os
 import re
 import requests
+from celery import group, app, shared_task
 
+from fileService import settings
 from indexing.methodInfo import MethodInfo
+from indexing.models import Record
 from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 
@@ -29,8 +32,12 @@ def generate_embeddings(chunks,
                                     ))
         if response.status_code != 202:
             log_debug(f"error: {response}")
+            return {"error": response}
+        else:
+            return response.json()
     except Exception as e:
         log_debug(f"error retrieving embedding for {collection_name}: {e} ")
+        return {"error": "e"}
 
     pass
 
@@ -49,6 +56,27 @@ class ClassInfo:
         self.method_names = []
         self.description = ""
 
+    def get_methods_for_class(self):
+        try:
+            log_debug(self.qualified_class_name)
+            log_debug(self.sourceCodePath)
+            response = requests.get(
+                f"{settings.PARSER_URL}/classInfo/{self.qualified_class_name}",
+                headers={
+                    "sourceCodePath": self.sourceCodePath
+                }
+            )
+            if response.status_code == 200:
+                data = response.json()
+                return data
+            else:
+                log_debug(
+                    f"Failed to retrieve classinfo  for {self.qualified_class_name} with status code {response.status_code}")
+                return None
+        except Exception as e:
+            log_debug(f"An error while classinfo   for {self.qualified_class_name}: {e}")
+            return None
+
     def get_meta_data(self):
         data = {
             "class_name": self.class_name,
@@ -62,8 +90,11 @@ class ClassInfo:
         }
         return filter_empty_values(data)
 
-    def set_qualified_class_name(self, package_name):
-        self.qualified_class_name = f"{package_name}.{self.class_name}"
+    def set_qualified_class_name(self, package_name, exact=False):
+        if exact:
+            self.qualified_class_name = package_name
+        else:
+            self.qualified_class_name = f"{package_name}.{self.class_name}"
 
     def fill_class_details(self, code, implemented_class, extended_class, fields, methods, method_names):
         self.code = code
@@ -92,9 +123,11 @@ class ClassInfo:
         self.method_info()
 
     def method_info(self):
-        for method_name in self.method_names:
-            self.collect_method_info(method_name)
+        job = group(self.collect_method_info.s(self, method_name) for method_name in self.method_names)
+        results = job.apply_async()
+        results.get()
 
+    @shared_task()
     def collect_method_info(self, method_name):
         try:
             res = requests.request("GET",
@@ -127,7 +160,7 @@ class ClassInfo:
                         stringRepresentation=data["stringRepresentation"]
                     )
                     self.method_infos.append(method)
-
+                    method.set_description()
             else:
                 log_debug(f"parserProblem: {method_name} : status code: {res.status_code} ")
         except Exception as e:
@@ -161,16 +194,41 @@ class ClassInfo:
         chunks = []
         metadata = []
         if self.method_infos:
-            for method in self.method_infos:
-                chunks.append(
-                    {
-                        "text": method.get_description()
-                    }
-                )
-                metadata.append(method.get_meta_data())
             collection_name = self.format_collection_name(self.qualified_class_name)
+            for method in self.method_infos:
+                result = Record.objects.filter(
+                    collection_name__in=[collection_name],
+                    name__in=[method.get_methodName()],
+                    type__in=[Record.Type.Method]).values_list('chromaDb_id', flat=True)
+                if result.exists():
+                    chunks.append(
+                        {
+                            "text": method.get_description(),
+                            "id": result.first()
+                        }
+                    )
+                else:
+                    chunks.append(
+                        {
+                            "text": method.get_description()
+                        }
+                    )
+                metadata.append(method.get_meta_data())
             collection_metadata = self.get_meta_data()
-            generate_embeddings(chunks, metadata, collection_name, collection_metadata)
+            response = generate_embeddings(chunks, metadata, collection_name, collection_metadata)
+            # keep track of indexes
+            if "embedding_id_list" in response:
+                records = []
+                for id, method in zip(response["embedding_id_list"], self.method_infos):
+                    records.append(Record(
+                        name=method.get_methodName(),
+                        chromaDb_id=id,
+                        type=Record.Type.Method,
+                        collection_name=collection_name))
+                Record.objects.bulk_create(records)
+
+
+
         else:
             log_debug(f"empty class function")
 

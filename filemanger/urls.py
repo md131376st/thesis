@@ -2,6 +2,7 @@ from django.conf.urls.static import static
 from django.urls import path, include
 
 from fileService import settings
+from filemanger.view.IndexCreationView import IndexCreationView
 from filemanger.view.IndexRetrivalView import IndexRetrivalView
 from filemanger.view.ChromaDBView import CollectionInfo
 from filemanger.view.EmbeddingView import EmbeddingView
@@ -18,7 +19,8 @@ urlpatterns = [
     path('embedding', EmbeddingView.as_view()),
     path('Collections', CollectionInfo.as_view()),
     path('taskstate/<uuid:id>/', CeleryManger.as_view()),
-    path('indexretrival', IndexRetrivalView.as_view())
+    path('indexretrival', IndexRetrivalView.as_view()),
+    path('indexcration', IndexCreationView.as_view())
 
 ]
 

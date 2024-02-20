@@ -15,6 +15,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 import environ
+
 #
 env = environ.Env()
 environ.Env.read_env()
@@ -64,7 +65,8 @@ INSTALLED_APPS = [
     "filemanger.apps.FilemangerConfig",
     'celery',
     'django_celery_results',
-    'simplePipline.apps.SimplePiplineConfig'
+    'simplePipline.apps.SimplePiplineConfig',
+    'indexing.apps.IndexConfig'
 ]
 
 MIDDLEWARE = [
@@ -179,6 +181,10 @@ MEDIA_URL = '/files/'
 PROCESSFIELS = 'preprocces'
 CHROMA_DB = os.environ.get('CHROMA_DB_PATH', os.getenv('CHROMA_DB_PATH'))
 FEATURE_EXTRACT = 'py_dump'
+
 INDEXROOT = "MyCodeBase"
+
+PARSER_URL = "http://127.0.0.1:8080/parser/"
+
 # set max side to 10 MB
 # DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760

@@ -2,6 +2,7 @@ from celery import shared_task, group
 
 from filemanger.models import Document
 from filemanger.piplinesteps import TaskHandler
+from indexing.ClassCollector import ClassCollector
 from simplePipline.utils.utilities import log_debug, Get_json_filename, Get_html_filename
 
 
@@ -68,3 +69,10 @@ def feature_extract_document(filename, include_images):
     log_debug(f"xtract feature complete: {filename}")
 
     pass
+
+
+@shared_task()
+def class_collector(path, collection_name):
+    data_collector = ClassCollector(path, collection_name)
+    data_collector.get_class_info()
+    return
