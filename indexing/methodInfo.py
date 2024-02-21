@@ -51,6 +51,50 @@ class MethodInfo:
         self.stringRepresentation = stringRepresentation
         self.description = ""
 
+    def to_dict(self):
+        return {
+            "returnType": self.returnType,
+            "methodName": self.methodName,
+            "className": self.className,
+            "packageName": self.packageName,
+            "body": self.body,
+            "modifier": self.modifier,
+            "signature": self.signature,
+            "parametersNames": self.parametersNames,  # Assuming these are serializable as is
+            "parametersTypes": self.parametersTypes,
+            "annotations": self.annotations,
+            "exceptions": self.exceptions,
+            "signatureDependencies": self.signatureDependencies,
+            "bodyDependencies": self.bodyDependencies,
+            "signatureDependenciesWithPackage": self.signatureDependenciesWithPackage,
+            "bodyDependenciesWithPackage": self.bodyDependenciesWithPackage,
+            "imports": self.imports,
+            "stringRepresentation": self.stringRepresentation,
+            "description": self.description,
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            returnType=data["returnType"],
+            methodName=data["methodName"],
+            className=data["className"],
+            packageName=data["packageName"],
+            body=data["body"],
+            modifier=data["modifier"],
+            signature=data["signature"],
+            parametersNames=data["parametersNames"],
+            parametersTypes=data["parametersTypes"],
+            annotations=data["annotations"],
+            exceptions=data["exceptions"],
+            signatureDependencies=data["signatureDependencies"],
+            bodyDependencies=data["bodyDependencies"],
+            signatureDependenciesWithPackage=data["signatureDependenciesWithPackage"],
+            bodyDependenciesWithPackage=data["bodyDependenciesWithPackage"],
+            imports=data["imports"],
+            stringRepresentation=data["stringRepresentation"],
+        )
+
     def __repr__(self):
         return f"methodName='{self.methodName}', returnType='{self.returnType}', className='{self.className}', packageName='{self.packageName}')"
 

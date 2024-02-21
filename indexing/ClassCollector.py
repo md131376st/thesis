@@ -14,8 +14,8 @@ class ClassCollector:
     def get_class_info(self):
         detail = self.class_info.get_methods_for_class()
         log_debug(detail)
-        # if detail is not None:
-        #     self.class_info.update_class_details(detail)
-        #     self.class_info.generate_class_embedding()
+        if detail is not None:
+            self.class_info.update_class_details(detail)
+            # self.class_info.generate_class_embedding()
         # else:
         #     log_debug("empty class")

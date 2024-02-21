@@ -1,3 +1,5 @@
+import base64
+import hashlib
 import json
 import os
 import re
@@ -56,12 +58,40 @@ class ClassInfo:
         self.method_names = []
         self.description = ""
 
+    def to_dict(self):
+        return {
+            "sourceCodePath": self.sourceCodePath,
+            "class_name": self.class_name,
+            "qualified_class_name": self.qualified_class_name,
+            "code": self.code,
+            "implemented_class": self.implemented_class,
+            "extended_class": self.extended_class,
+            "fields": self.fields,
+            "methods": self.methods,
+            "method_infos": [method_info.to_dict() for method_info in self.method_infos],
+
+            "method_names": self.method_names,
+            "description": self.description,
+        }
+    @classmethod
+    def from_dict(cls, data):
+        instance = cls(data["class_name"], data["sourceCodePath"])
+        instance.qualified_class_name = data["qualified_class_name"]
+        instance.code = data["code"]
+        instance.implemented_class = data["implemented_class"]
+        instance.extended_class = data["extended_class"]
+        instance.fields = data["fields"]
+        instance.methods = data["methods"]
+        instance.method_names = data["method_names"]
+        instance.description = data["description"]
+        instance.method_infos = [MethodInfo.from_dict(mi_data) for mi_data in data["method_infos"]]
+        return instance
+
     def get_methods_for_class(self):
         try:
-            log_debug(self.qualified_class_name)
-            log_debug(self.sourceCodePath)
+
             response = requests.get(
-                f"{settings.PARSER_URL}/classInfo/{self.qualified_class_name}",
+                f"{settings.PARSER_URL}classInfo/{self.qualified_class_name}",
                 headers={
                     "sourceCodePath": self.sourceCodePath
                 }
@@ -171,24 +201,15 @@ class ClassInfo:
             method.set_description()
 
     def format_collection_name(self, qualified_class_name):
-        # Remove the specific prefix and replace periods with dashes
-        temp_name = qualified_class_name.replace("com.intesasanpaolo.bear.sxdr0.metaconto", "").replace(".", "-")
-
-        # Ensure the name starts with a lowercase letter or digit
-        if not re.match("^[a-z0-9]", temp_name):
-            temp_name = "a" + temp_name  # Prefix with 'a' to ensure it starts correctly
-
-        # Ensure the name ends with a lowercase letter or digit
-        if not re.match("[a-z0-9]$", temp_name):
-            temp_name += "1"  # Suffix with '1' to ensure it ends correctly
-
-        # Adjust the length to be between 3 and 63 characters
-        if len(temp_name) > 63:
-            temp_name = temp_name[:63]  # Trim to the max length if necessary
-        elif len(temp_name) < 3:
-            temp_name += "a1"  # Add characters to meet the min length if necessary
-
-        return temp_name
+        # Crea l'oggetto hash SHA-256
+        sha256_hash = hashlib.sha256()
+        # Aggiorna l'hash con i byte della stringa input
+        sha256_hash.update(qualified_class_name.encode("utf-8"))
+        # Ottiene la rappresentazione esadecimale completa dell'hash
+        hashed_string_full = sha256_hash.hexdigest()
+        # Tronca la stringa hash agli ultimi 60 caratteri
+        hashed_string_truncated = hashed_string_full[:63]
+        return hashed_string_truncated
 
     def generate_class_embedding(self):
         chunks = []
