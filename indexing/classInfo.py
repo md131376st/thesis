@@ -153,22 +153,13 @@ class ClassInfo:
         self.method_info()
 
     def method_info(self):
-        job = group(self.collect_method_info.s(self, method_name) for method_name in self.method_names)
+        job = group(self.collect_method_info.s(method_name=method_name, qualified_class_name=self.qualified_class_name,
+                                          source_code_path=self.sourceCodePath) for method_name in self.method_names)
         results = job.apply_async()
-        results.get()
+        method_infos = results.get()  # Ottiene i risultati di tutti i task completati
 
-    @shared_task()
-    def collect_method_info(self, method_name):
-        try:
-            res = requests.request("GET",
-                                   f"http://localhost:8080/parser/methodsInfo/{self.qualified_class_name}/{method_name}",
-                                   headers={
-                                       "sourceCodePath": self.sourceCodePath
-                                   })
-
-            if res.status_code == 200:
-
-                info = json.loads(res.content)
+        for info in method_infos:
+            if info:
                 for data in info:
                     method = MethodInfo(
                         returnType=data["returnType"],
@@ -190,11 +181,30 @@ class ClassInfo:
                         stringRepresentation=data["stringRepresentation"]
                     )
                     self.method_infos.append(method)
-                    method.set_description()
+                    method.set_description()  # Assicurati che questo sia thread-safe o rifletti su come gestirlo
+
+    @shared_task()
+    def collect_method_info(*args, **kwargs):
+        # Assumendo che `method_name` e altre variabili necessarie siano passate correttamente.
+        method_name = kwargs.get('method_name')
+        qualified_class_name = kwargs.get('qualified_class_name')
+        source_code_path = kwargs.get('source_code_path')
+
+        try:
+            res = requests.request("GET",
+                                   f"http://localhost:8080/parser/methodsInfo/{qualified_class_name}/{method_name}",
+                                   headers={
+                                       "sourceCodePath": source_code_path
+                                   })
+
+            if res.status_code == 200:
+                return json.loads(res.content)
             else:
                 log_debug(f"parserProblem: {method_name} : status code: {res.status_code} ")
+                return None  # o potresti voler ritornare qualcosa che indica un fallimento
         except Exception as e:
             log_debug(f"An error retrieving method info for {method_name}: {e}")
+            return None
 
     def generate_class_index(self):
         for method in self.method_infos:
