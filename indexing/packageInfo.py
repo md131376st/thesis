@@ -37,8 +37,8 @@ class PackageInfo:
 
         )
         result = workflow.apply_async()
-        final_result = result.get()
-        return final_result
+
+        return result.id
 
     def set_description(self, description):
         self.description = description

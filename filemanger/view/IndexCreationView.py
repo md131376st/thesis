@@ -34,9 +34,9 @@ class IndexCreationView(CreateAPIView):
         return Response({"taskid": taskid}, status=status.HTTP_202_ACCEPTED)
 
     def package_index(self, path, collection_name):
-        taskid = "package"
+
         PackageCollector = inpc.PackageCollector(path, collection_name)
-        PackageCollector.get_package_info()
+        taskid = PackageCollector.get_package_info()
 
         return Response({"taskid": taskid}, status=status.HTTP_202_ACCEPTED)
 

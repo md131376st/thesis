@@ -2,6 +2,7 @@ import json
 
 import requests
 
+from fileService import settings
 from indexing.classInfo import ClassInfo, generate_embeddings
 from indexing.packageInfo import PackageInfo
 from indexing.utility import packet_info_call
@@ -27,7 +28,6 @@ class ClassPackageCollector:
                 details = self.get_methods_for_class(class_name, package_info.package_name)
                 if details is not None:
                     class_info.update_class_details(details)
-                    # class_info.process_methods()
                     package_info.add_class(class_info)
             if len(package_info.classes) != 0:
                 self.packages.append(package_info)
@@ -50,7 +50,7 @@ class ClassPackageCollector:
     def get_methods_for_class(self, class_name, package_name):
         try:
             response = requests.get(
-                f"http://localhost:8080/parser/classInfo/{package_name}.{class_name}",
+                f"{settings.PARSER_URL}classInfo/{package_name}.{class_name}",
                 headers={
                     "sourceCodePath": self.sourceCodePath
                 }

@@ -11,8 +11,9 @@ class PackageCollector:
         self.package.collect_classes(prefix=self.package.package_name,
                                               sourceCodePath=self.path)
         if self.package.classes:
-            hi=self.package.class_info()
-            log_debug(f"task result return in db {hi}")
+            log_debug(f"task result id")
+            return self.package.class_info()
+
 
 
 

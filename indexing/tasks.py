@@ -4,6 +4,7 @@ import os
 import requests
 from celery import shared_task, group
 
+from fileService import settings
 from indexing.methodInfo import MethodInfo
 from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import log_debug
@@ -17,7 +18,7 @@ def collect_method_info(**kwargs):
     source_code_path = kwargs.get('source_code_path')
     try:
         res = requests.request("GET",
-                               f"http://localhost:8080/parser/methodsInfo/{qualified_class_name}/{method_name}",
+                               f"{settings.PARSER_URL}methodsInfo/{qualified_class_name}/{method_name}",
                                headers={
                                    "sourceCodePath": source_code_path
                                })
@@ -111,19 +112,20 @@ def collect_class_info(**kwargs):
 @shared_task
 def process_final_results(all_results):
     from indexing.classInfo import ClassInfo
-    processed_results = []
     for group_result in all_results:
+        # generate class embeddings
         method_info_list = []
         classinfo_data = group_result['classinfo_data']
         classInfo = ClassInfo.from_dict(classinfo_data)
         for result in group_result['results']:
+            # the methods can have overriding so the result can be a list
             if result:
+                # add for each class the method descriptions
                 for result_ in result:
                     method_info = MethodInfo.from_dict(result_)
                     method_info_list.append(method_info)
+        # generate class Descriptions
         classInfo.method_infos = method_info_list
         classInfo.generate_description()
         classInfo.generate_class_embedding()
-        processed_results.append(classInfo.to_dict())
-
-    return processed_results
+    return
