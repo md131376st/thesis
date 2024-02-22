@@ -5,6 +5,7 @@ from filemanger.serializer.IndexCreateSerializer import IndexCreateSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from indexing.ClassCollector import ClassCollector
+import indexing.packageCollector as inpc
 
 
 class IndexCreationView(CreateAPIView):
@@ -34,6 +35,9 @@ class IndexCreationView(CreateAPIView):
 
     def package_index(self, path, collection_name):
         taskid = "package"
+        PackageCollector = inpc.PackageCollector(path, collection_name)
+        PackageCollector.get_package_info()
+
         return Response({"taskid": taskid}, status=status.HTTP_202_ACCEPTED)
 
     def class_index(self, path, collection_name):
@@ -41,5 +45,3 @@ class IndexCreationView(CreateAPIView):
         task_id = data_collector.get_class_info()
 
         return Response({"taskId": task_id}, status=status.HTTP_202_ACCEPTED)
-
-

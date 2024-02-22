@@ -145,7 +145,7 @@ class MethodInfo:
             if not api_key:
                 log_debug("OPENAI_API_KEY is not set in environment variables.")
                 return None  # Return None if API key is not found
-
+            log_debug(f"OPENAI_API_CALL: {self.methodName}")
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}"

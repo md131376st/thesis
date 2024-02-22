@@ -6,14 +6,15 @@ import re
 import time
 
 import requests
-from celery import group, app, shared_task, chord
+from celery import group, app, shared_task, chord, chain
 
 from fileService import settings
 from indexing.methodInfo import MethodInfo
 from indexing.models import Record
 from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import filter_empty_values, log_debug
-from .tasks import *
+from indexing.tasks import collect_method_info
+
 
 def generate_embeddings(chunks,
                         metadata,
@@ -75,6 +76,7 @@ class ClassInfo:
             "method_names": self.method_names,
             "description": self.description,
         }
+
     @classmethod
     def from_dict(cls, data):
         instance = cls(data["class_name"], data["sourceCodePath"])
@@ -156,6 +158,10 @@ class ClassInfo:
     def method_info(self):
         job = group(collect_method_info.s(method_name=method_name, qualified_class_name=self.qualified_class_name,
                                           source_code_path=self.sourceCodePath) for method_name in self.method_names)
+        workflow = chain(
+            job,
+
+        )
         results = job.apply_async()
         return results.id
 
@@ -175,6 +181,7 @@ class ClassInfo:
         return hashed_string_truncated
 
     def generate_class_embedding(self):
+        log_debug(f"generate embeddings: { self.class_name} ")
         chunks = []
         metadata = []
         if self.method_infos:
@@ -200,6 +207,7 @@ class ClassInfo:
                 metadata.append(method.get_meta_data())
             collection_metadata = self.get_meta_data()
             response = generate_embeddings(chunks, metadata, collection_name, collection_metadata)
+            log_debug(f"finish  embeddings: {self.class_name} ")
             # keep track of indexes
             if "embedding_id_list" in response:
                 records = []
@@ -210,8 +218,6 @@ class ClassInfo:
                         type=Record.Type.Method,
                         collection_name=collection_name))
                 Record.objects.bulk_create(records)
-
-
 
         else:
             log_debug(f"empty class function")

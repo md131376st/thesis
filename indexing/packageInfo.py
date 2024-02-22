@@ -2,10 +2,14 @@ import json
 import os
 
 import requests
+from celery import chain, group
 
-from indexing.classInfo import generate_embeddings
+from indexing.classInfo import generate_embeddings, ClassInfo
+from indexing.utility import packet_info_call
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 from script.prompt import Create_Tech_functional_package
+
+from .tasks import *
 
 
 class PackageInfo:
@@ -13,6 +17,28 @@ class PackageInfo:
         self.package_name = package_name
         self.classes = []  # List to store ClassInfo instances
         self.description = ""
+
+    def collect_classes(self, prefix, sourceCodePath):
+        data = packet_info_call(prefix=prefix, sourceCodePath=sourceCodePath)
+        if data is not None:
+            for class_name in data["classNames"]:
+                class_info = ClassInfo(class_name, sourceCodePath)
+                class_info.set_qualified_class_name(data["packageName"])
+                details = class_info.get_methods_for_class()
+                if details is not None:
+                    class_info.update_class_details(details)
+                    self.add_class(class_info)
+
+    def class_info(self):
+        groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in self.classes]
+        workflow = chain(
+            group(*groups),
+            process_final_results.s()
+
+        )
+        result = workflow.apply_async()
+        final_result = result.get()
+        return final_result
 
     def set_description(self, description):
         self.description = description

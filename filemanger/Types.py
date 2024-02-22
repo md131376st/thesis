@@ -9,5 +9,5 @@ class ChunkType(Enum):
 
 class IndexLevelTypes(Enum):
     CODEBASE = "codebase"
-    PACKAGE = "package",
+    PACKAGE = "package"
     CLASS = "class"

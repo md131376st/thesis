@@ -1,5 +1,5 @@
 from indexing.classInfo import generate_embeddings
-from indexing.packageCollector import ClassPackageCollector
+from indexing.codeBaseCollector import ClassPackageCollector
 import pickle
 import tiktoken
 

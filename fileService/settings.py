@@ -66,7 +66,8 @@ INSTALLED_APPS = [
     'celery',
     'django_celery_results',
     'simplePipline.apps.SimplePiplineConfig',
-    'indexing.apps.IndexConfig'
+    'indexing.apps.IndexConfig',
+
 ]
 
 MIDDLEWARE = [

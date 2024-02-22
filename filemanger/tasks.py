@@ -70,5 +70,7 @@ def feature_extract_document(filename, include_images):
 
     pass
 
+
 @shared_task()
-def get_classes_descriptions()
+def get_classes_descriptions():
+    pass
