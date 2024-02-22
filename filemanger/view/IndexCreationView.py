@@ -4,7 +4,7 @@ from filemanger.Types import IndexLevelTypes
 from filemanger.serializer.IndexCreateSerializer import IndexCreateSerializer
 from rest_framework import status
 from rest_framework.response import Response
-from filemanger.tasks import class_collector
+from indexing.ClassCollector import ClassCollector
 
 
 class IndexCreationView(CreateAPIView):
@@ -37,5 +37,9 @@ class IndexCreationView(CreateAPIView):
         return Response({"taskid": taskid}, status=status.HTTP_202_ACCEPTED)
 
     def class_index(self, path, collection_name):
-        taskId = class_collector.delay(path, collection_name).id
-        return Response({"taskId": taskId}, status=status.HTTP_202_ACCEPTED)
+        data_collector = ClassCollector(path, collection_name)
+        task_id = data_collector.get_class_info()
+
+        return Response({"taskId": task_id}, status=status.HTTP_202_ACCEPTED)
+
+

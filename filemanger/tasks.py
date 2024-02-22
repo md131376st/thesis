@@ -70,9 +70,5 @@ def feature_extract_document(filename, include_images):
 
     pass
 
-
 @shared_task()
-def class_collector(path, collection_name):
-    data_collector = ClassCollector(path, collection_name)
-    data_collector.get_class_info()
-    return
+def get_classes_descriptions()

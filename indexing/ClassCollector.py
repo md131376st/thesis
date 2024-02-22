@@ -16,6 +16,7 @@ class ClassCollector:
         log_debug(detail)
         if detail is not None:
             self.class_info.update_class_details(detail)
+            return self.class_info.method_info()
             # self.class_info.generate_class_embedding()
         # else:
         #     log_debug("empty class")

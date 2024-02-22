@@ -3,15 +3,17 @@ import hashlib
 import json
 import os
 import re
+import time
+
 import requests
-from celery import group, app, shared_task
+from celery import group, app, shared_task, chord
 
 from fileService import settings
 from indexing.methodInfo import MethodInfo
 from indexing.models import Record
 from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import filter_empty_values, log_debug
-
+from .tasks import *
 
 def generate_embeddings(chunks,
                         metadata,
@@ -150,61 +152,12 @@ class ClassInfo:
                                 details['fields'],
                                 details['methods'],
                                 details['methodsNames'])
-        self.method_info()
 
     def method_info(self):
-        job = group(self.collect_method_info.s(method_name=method_name, qualified_class_name=self.qualified_class_name,
+        job = group(collect_method_info.s(method_name=method_name, qualified_class_name=self.qualified_class_name,
                                           source_code_path=self.sourceCodePath) for method_name in self.method_names)
         results = job.apply_async()
-        method_infos = results.get()  # Ottiene i risultati di tutti i task completati
-
-        for info in method_infos:
-            if info:
-                for data in info:
-                    method = MethodInfo(
-                        returnType=data["returnType"],
-                        methodName=data["methodName"],
-                        className=data["className"],
-                        packageName=data["packageName"],
-                        body=data["body"],
-                        modifier=data["modifier"],
-                        signature=data["signature"],
-                        parametersNames=data["parametersNames"],
-                        parametersTypes=data["parametersTypes"],
-                        annotations=data["annotations"],
-                        exceptions=data["exceptions"],
-                        signatureDependencies=data["signatureDependencies"],
-                        bodyDependencies=data["bodyDependencies"],
-                        signatureDependenciesWithPackage=data["signatureDependenciesWithPackage"],
-                        bodyDependenciesWithPackage=data["bodyDependenciesWithPackage"],
-                        imports=data["imports"],
-                        stringRepresentation=data["stringRepresentation"]
-                    )
-                    self.method_infos.append(method)
-                    method.set_description()  # Assicurati che questo sia thread-safe o rifletti su come gestirlo
-
-    @shared_task()
-    def collect_method_info(*args, **kwargs):
-        # Assumendo che `method_name` e altre variabili necessarie siano passate correttamente.
-        method_name = kwargs.get('method_name')
-        qualified_class_name = kwargs.get('qualified_class_name')
-        source_code_path = kwargs.get('source_code_path')
-
-        try:
-            res = requests.request("GET",
-                                   f"http://localhost:8080/parser/methodsInfo/{qualified_class_name}/{method_name}",
-                                   headers={
-                                       "sourceCodePath": source_code_path
-                                   })
-
-            if res.status_code == 200:
-                return json.loads(res.content)
-            else:
-                log_debug(f"parserProblem: {method_name} : status code: {res.status_code} ")
-                return None  # o potresti voler ritornare qualcosa che indica un fallimento
-        except Exception as e:
-            log_debug(f"An error retrieving method info for {method_name}: {e}")
-            return None
+        return results.id
 
     def generate_class_index(self):
         for method in self.method_infos:
