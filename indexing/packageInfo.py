@@ -4,13 +4,10 @@ import os
 import requests
 from celery import chain, group
 
-from indexing.classInfo import generate_embeddings, ClassInfo
 from indexing.utility import packet_info_call
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 from script.prompt import Create_Tech_functional_package
 from .baseInfo import BaseInfo
-
-from .tasks import *
 
 
 class PackageInfo(BaseInfo):
@@ -20,7 +17,24 @@ class PackageInfo(BaseInfo):
         self.classes = []  # List to store ClassInfo instances
         self.description = ""
 
+    def to_dict(self):
+        return {
+            "package_name": self.package_name,
+            "classes": [class_.to_dict() for class_ in self.classes],
+            "description": self.description,
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        from indexing.classInfo import generate_embeddings, ClassInfo
+        instance = cls(data["package_name"])
+        instance.classes = [ClassInfo.from_dict(ci_data) for ci_data in data["classes"]]
+        instance.description = data["description"]
+        return instance
+
     def collect_classes(self, prefix, sourceCodePath):
+        from indexing.classInfo import ClassInfo
+        log_debug(f"collect class method")
         data = packet_info_call(prefix=prefix, sourceCodePath=sourceCodePath)
         if data is not None:
             for class_name in data["classNames"]:
@@ -32,10 +46,11 @@ class PackageInfo(BaseInfo):
                     self.add_class(class_info)
 
     def class_info(self):
+        from indexing.tasks import collect_class_info, process_package_results
         groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in self.classes]
         workflow = chain(
-            group(*groups),
-            process_final_results.s()
+            group(*groups)|
+            process_package_results.s()
 
         )
         result = workflow.apply_async()
@@ -59,6 +74,7 @@ class PackageInfo(BaseInfo):
         self.classes.append(class_info)
 
     def generate_package_embeddings(self):
+        from indexing.classInfo import generate_embeddings
         chunks = []
         metadata = []
         if self.classes:
@@ -97,7 +113,7 @@ class PackageInfo(BaseInfo):
                 "model": "gpt-4-turbo-preview",
                 "messages": [
                     {"role": "system", "content": f"{Create_Tech_functional_package}"},
-                    {"role": "user", "content": f"{self.description_package_prompt_data}"},
+                    {"role": "user", "content": f"{self.description_package_prompt_data()}"},
                 ],
                 "max_tokens": 1024,
                 "temperature": 0

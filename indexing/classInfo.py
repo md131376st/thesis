@@ -1,17 +1,16 @@
-import base64
+
 import hashlib
 import json
 import os
-import re
-import time
+
 
 import requests
-from celery import group, app, shared_task, chord, chain
+from celery import group,  chain
 
 from fileService import settings
 from indexing.baseInfo import BaseInfo
 from indexing.methodInfo import MethodInfo
-from indexing.models import Record
+
 from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 from indexing.tasks import collect_method_info, class_embedding_handler

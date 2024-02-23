@@ -2,13 +2,14 @@ import json
 
 import requests
 
+from fileService import settings
 from simplePipline.utils.utilities import log_debug
 
 
 def packet_info_call( sourceCodePath,prefix):
     try:
         res = requests.get(
-            f"http://localhost:8080/parser/packageInfo/{prefix}",
+            f"{settings.PARSER_URL}packageInfo/{prefix}",
             headers={
                 "sourceCodePath": sourceCodePath
             }

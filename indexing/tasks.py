@@ -2,12 +2,47 @@ import json
 import os
 
 import requests
-from celery import shared_task, group
+from celery import shared_task, group, chain
 
 from fileService import settings
+from indexing import packageInfo
 from indexing.methodInfo import MethodInfo
+from indexing.packageInfo import PackageInfo
 from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import log_debug
+
+
+@shared_task()
+def collect_package_class_info(**kwargs):
+    packageInfo_data = kwargs.get('packageInfo')
+    sourceCodePath = kwargs.get('sourceCodePath')
+    packageInfo = PackageInfo.from_dict(packageInfo_data)
+    log_debug(f"codebase indexing-collect_package_class_info  : {packageInfo.package_name}")
+    packageInfo.collect_classes(prefix=packageInfo.package_name, sourceCodePath=sourceCodePath)
+    groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in packageInfo.classes]
+    workflow = chain(
+        group(*groups)|
+        process_package_results.s()|
+        update_package_info.s(packageInfo_data=packageInfo_data)
+    )
+    return workflow.apply_async()
+
+
+@shared_task()
+def update_package_info(results, packageInfo_data):
+    log_debug(f"\n packge indexing :\n {results} \n")
+    log_debug(f"\n packageInfo_data :\n {packageInfo_data} \n")
+    # updates the package data after result and returns it
+    packageInfo = PackageInfo.from_dict(packageInfo_data)
+    from indexing.classInfo import ClassInfo
+    packageInfo.classes = [ClassInfo.from_dict(groupResult) for groupResult in results]
+    description = packageInfo.generate_description()
+    if description:
+        packageInfo.set_description(description)
+        packageInfo.generate_package_embeddings()
+    return packageInfo.to_dict()
+
+
 
 
 @shared_task()
@@ -43,71 +78,10 @@ def collect_method_info(**kwargs):
 
 def Generate_method_info(method_list, method, method_name):
     log_debug(f"parser restive {method_name}")
-    method_info = MethodInfo.from_dict(method,False)
+    method_info = MethodInfo.from_dict(method, False)
     log_debug(f"parser restive {method_name} made dict")
     method_info.set_description()
     method_list.append(method_info.to_dict())
-
-
-@shared_task()
-def class_embedding_handler(all_result, classinfo):
-    from indexing.classInfo import ClassInfo
-    classinfo_ = ClassInfo.from_dict(classinfo)
-    method_info_list=[]
-    for result in all_result:
-        # the methods can have overriding so the result can be a list
-        if result:
-            log_debug(f"result :  {result}")
-            method_info = MethodInfo.from_dict(result)
-            log_debug(f"method info :  {method_info.get_description()}")
-            method_info_list.append(method_info)
-    classinfo_.method_infos = method_info_list
-    classinfo_.generate_class_embedding()
-
-    pass
-
-
-# @shared_task()
-# def generate_description(data):
-#     try:
-#         # Corrected syntax for getting environment variable
-#         api_key = os.environ.get("OPENAI_API_KEY")
-#         if not api_key:
-#             log_debug("OPENAI_API_KEY is not set in environment variables.")
-#             return None  # Return None if API key is not found
-#
-#         headers = {
-#             "Content-Type": "application/json",
-#             "Authorization": f"Bearer {api_key}"
-#         }
-#         payload = {
-#             "model": "gpt-4-turbo-preview",
-#             "messages": [
-#                 {"role": "system", "content": f"{Create_Tech_functional_class}"},
-#                 {"role": "user", "content": f"{data}"},
-#             ],
-#             "max_tokens": 1024,
-#             "temperature": 0
-#         }
-#
-#         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-#         response.raise_for_status()  # Raises an exception for 4XX/5XX responses
-#
-#         # Parsing the response assuming the structure is as expected
-#         return response.json()["choices"][0]['message']['content']
-#
-#     except requests.exceptions.RequestException as e:
-#         # Handle network-related errors here
-#         log_debug(f"An error occurred while making the request: {e}")
-#     except KeyError as e:
-#         # Handle errors related to accessing parts of the response
-#         log_debug(f"An error occurred while parsing the response: {e}")
-#     except Exception as e:
-#         # Handle other possible exceptions
-#         log_debug(f"An unexpected error occurred: {e}")
-#
-#         # Return None if the function cannot complete as expected due to any error
-#     return None
 
 
 @shared_task()
@@ -126,8 +100,11 @@ def collect_class_info(**kwargs):
 
 
 @shared_task
-def process_final_results(all_results):
+def process_package_results(all_results):
+    log_debug("process_package_results")
+    log_debug(f"\n all_results :  {all_results} \n ***********\n")
     from indexing.classInfo import ClassInfo
+    results = []
     for group_result in all_results:
         # generate class embeddings
         method_info_list = []
@@ -146,4 +123,24 @@ def process_final_results(all_results):
         log_debug("generate Class description ")
         classInfo.generate_description()
         classInfo.generate_class_embedding()
-    return
+        results.append(classInfo.to_dict())
+
+    return results
+
+
+@shared_task()
+def class_embedding_handler(all_result, classinfo):
+    from indexing.classInfo import ClassInfo
+    classinfo_ = ClassInfo.from_dict(classinfo)
+    method_info_list = []
+    for result in all_result:
+        # the methods can have overriding so the result can be a list
+        if result:
+            log_debug(f"result :  {result}")
+            method_info = MethodInfo.from_dict(result)
+            log_debug(f"method info :  {method_info.get_description()}")
+            method_info_list.append(method_info)
+    classinfo_.method_infos = method_info_list
+    classinfo_.generate_class_embedding()
+
+    pass
