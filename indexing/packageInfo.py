@@ -34,9 +34,9 @@ class PackageInfo(BaseInfo):
 
     def collect_classes(self, prefix, sourceCodePath):
         from indexing.classInfo import ClassInfo
-        log_debug(f"collect class method")
+        log_debug(f"collect class methods in package  {prefix}")
         data = packet_info_call(prefix=prefix, sourceCodePath=sourceCodePath)
-        if data is not None:
+        if data["classNames"] is not None:
             for class_name in data["classNames"]:
                 class_info = ClassInfo(class_name, sourceCodePath)
                 class_info.set_qualified_class_name(data["packageName"])
@@ -44,12 +44,14 @@ class PackageInfo(BaseInfo):
                 if details is not None:
                     class_info.update_class_details(details)
                     self.add_class(class_info)
+        else:
+            log_debug(f"empty package")
 
     def class_info(self):
         from indexing.tasks import collect_class_info, process_package_results
         groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in self.classes]
         workflow = chain(
-            group(*groups)|
+            group(*groups) |
             process_package_results.s()
 
         )

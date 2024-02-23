@@ -17,12 +17,12 @@ def collect_package_class_info(**kwargs):
     packageInfo_data = kwargs.get('packageInfo')
     sourceCodePath = kwargs.get('sourceCodePath')
     packageInfo = PackageInfo.from_dict(packageInfo_data)
-    log_debug(f"codebase indexing-collect_package_class_info  : {packageInfo.package_name}")
+    log_debug(f"start code base indexing  : {packageInfo.package_name}")
     packageInfo.collect_classes(prefix=packageInfo.package_name, sourceCodePath=sourceCodePath)
     groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in packageInfo.classes]
     workflow = chain(
-        group(*groups)|
-        process_package_results.s()|
+        group(*groups) |
+        process_package_results.s() |
         update_package_info.s(packageInfo_data=packageInfo_data)
     )
     return workflow.apply_async()
@@ -30,7 +30,7 @@ def collect_package_class_info(**kwargs):
 
 @shared_task()
 def update_package_info(results, packageInfo_data):
-    log_debug(f"\n packge indexing :\n {results} \n")
+    log_debug(f"\n package indexing :\n {results} \n")
     log_debug(f"\n packageInfo_data :\n {packageInfo_data} \n")
     # updates the package data after result and returns it
     packageInfo = PackageInfo.from_dict(packageInfo_data)
@@ -41,8 +41,6 @@ def update_package_info(results, packageInfo_data):
         packageInfo.set_description(description)
         packageInfo.generate_package_embeddings()
     return packageInfo.to_dict()
-
-
 
 
 @shared_task()
@@ -60,6 +58,7 @@ def collect_method_info(**kwargs):
         log_debug(f"parser request {method_name}")
 
         if res.status_code == 200:
+            log_debug(f"parser response {method_name}")
             methods = json.loads(res.content)
             method_List = []
             if isinstance(methods, list):
@@ -77,9 +76,8 @@ def collect_method_info(**kwargs):
 
 
 def Generate_method_info(method_list, method, method_name):
-    log_debug(f"parser restive {method_name}")
     method_info = MethodInfo.from_dict(method, False)
-    log_debug(f"parser restive {method_name} made dict")
+    log_debug(f" generate method description {method_name}")
     method_info.set_description()
     method_list.append(method_info.to_dict())
 
@@ -89,7 +87,7 @@ def collect_class_info(**kwargs):
     classinfo_data = kwargs.get('classinfo')
     from indexing.classInfo import ClassInfo
     classinfo = ClassInfo.from_dict(classinfo_data)
-
+    log_debug(f"start class indexing  : {classinfo.class_name}")
     result = [collect_method_info.s(method_name=method_name,
                                     qualified_class_name=classinfo.qualified_class_name,
                                     source_code_path=classinfo.sourceCodePath,
@@ -121,8 +119,10 @@ def process_package_results(all_results):
 
         classInfo.method_infos = method_info_list
         log_debug("generate Class description ")
-        classInfo.generate_description()
-        classInfo.generate_class_embedding()
+        description = classInfo.generate_description()
+        if description:
+            classInfo.set_description(description)
+            classInfo.generate_class_embedding()
         results.append(classInfo.to_dict())
 
     return results
@@ -131,7 +131,9 @@ def process_package_results(all_results):
 @shared_task()
 def class_embedding_handler(all_result, classinfo):
     from indexing.classInfo import ClassInfo
+    log_debug(f"class_embedding_handler: {classinfo}")
     classinfo_ = ClassInfo.from_dict(classinfo)
+    log_debug(f"class_embedding_handler: {classinfo.class_name}")
     method_info_list = []
     for result in all_result:
         # the methods can have overriding so the result can be a list

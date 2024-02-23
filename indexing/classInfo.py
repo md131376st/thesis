@@ -1,11 +1,9 @@
-
 import hashlib
 import json
 import os
 
-
 import requests
-from celery import group,  chain
+from celery import group, chain
 
 from fileService import settings
 from indexing.baseInfo import BaseInfo
@@ -200,15 +198,16 @@ class ClassInfo(BaseInfo):
                 #         }
                 #     )
                 # else:
-                chunks.append(
-                    {
-                        "text": method.get_description()
-                    }
-                )
-                metadata.append(method.get_meta_data())
+                if method.get_description():
+                    chunks.append(
+                        {
+                            "text": method.get_description()
+                        }
+                    )
+                    metadata.append(method.get_meta_data())
             collection_metadata = self.get_meta_data()
             log_debug(f" chunks for embeddings {chunks}")
-            response = generate_embeddings(chunks, metadata, collection_name, collection_metadata)
+            generate_embeddings(chunks, metadata, collection_name, collection_metadata)
             log_debug(f"finish  embeddings: {self.class_name} ")
             # keep track of indexes
             # if "embedding_id_list" in response:
