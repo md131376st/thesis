@@ -51,6 +51,7 @@ class OpenAIEmbeder(Embeder):
                 self.apply_embeddings(texts, model)
 
     def apply_embeddings(self, text, model):
+        log_debug(text)
         openaiembeding = self.client.embeddings.create(input=text,
                                                        model=model).data
         embedding = [embed.embedding for embed in openaiembeding]

@@ -13,7 +13,7 @@ from indexing.methodInfo import MethodInfo
 from indexing.models import Record
 from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import filter_empty_values, log_debug
-from indexing.tasks import collect_method_info
+from indexing.tasks import collect_method_info, class_embedding_handler
 
 
 def generate_embeddings(chunks,
@@ -156,13 +156,13 @@ class ClassInfo:
                                 details['methodsNames'])
 
     def method_info(self):
-        job = group(collect_method_info.s(method_name=method_name, qualified_class_name=self.qualified_class_name,
-                                          source_code_path=self.sourceCodePath) for method_name in self.method_names)
-        workflow = chain(
-            job,
 
+        workflow = chain(
+            group(collect_method_info.s(method_name=method_name, qualified_class_name=self.qualified_class_name,
+                                        source_code_path=self.sourceCodePath) for method_name in self.method_names),
+            class_embedding_handler.s(classinfo=self.to_dict())
         )
-        results = job.apply_async()
+        results = workflow.apply_async()
         return results.id
 
     def generate_class_index(self):
@@ -181,43 +181,44 @@ class ClassInfo:
         return hashed_string_truncated
 
     def generate_class_embedding(self):
-        log_debug(f"generate embeddings: { self.class_name} ")
+        log_debug(f"generate embeddings: {self.class_name} ")
         chunks = []
         metadata = []
         if self.method_infos:
             collection_name = self.format_collection_name(self.qualified_class_name)
             for method in self.method_infos:
-                result = Record.objects.filter(
-                    collection_name__in=[collection_name],
-                    name__in=[method.get_methodName()],
-                    type__in=[Record.Type.Method]).values_list('chromaDb_id', flat=True)
-                if result.exists():
-                    chunks.append(
-                        {
-                            "text": method.get_description(),
-                            "id": result.first()
-                        }
-                    )
-                else:
-                    chunks.append(
-                        {
-                            "text": method.get_description()
-                        }
-                    )
+                # result = Record.objects.filter(
+                #     collection_name__in=[collection_name],
+                #     name__in=[method.get_methodName()],
+                #     type__in=[Record.Type.Method]).values_list('chromaDb_id', flat=True)
+                # if result.exists():
+                #     chunks.append(
+                #         {
+                #             "text": method.get_description(),
+                #             "id": result.first()
+                #         }
+                #     )
+                # else:
+                chunks.append(
+                    {
+                        "text": method.get_description()
+                    }
+                )
                 metadata.append(method.get_meta_data())
             collection_metadata = self.get_meta_data()
+            log_debug(f" chunks for embeddings {chunks}")
             response = generate_embeddings(chunks, metadata, collection_name, collection_metadata)
             log_debug(f"finish  embeddings: {self.class_name} ")
             # keep track of indexes
-            if "embedding_id_list" in response:
-                records = []
-                for id, method in zip(response["embedding_id_list"], self.method_infos):
-                    records.append(Record(
-                        name=method.get_methodName(),
-                        chromaDb_id=id,
-                        type=Record.Type.Method,
-                        collection_name=collection_name))
-                Record.objects.bulk_create(records)
+            # if "embedding_id_list" in response:
+            #     records = []
+            #     for id, method in zip(response["embedding_id_list"], self.method_infos):
+            #         records.append(Record(
+            #             name=method.get_methodName(),
+            #             chromaDb_id=id,
+            #             type=Record.Type.Method,
+            #             collection_name=collection_name))
+            #     Record.objects.bulk_create(records)
 
         else:
             log_debug(f"empty class function")

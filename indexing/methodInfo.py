@@ -31,7 +31,8 @@ class MethodInfo:
                  signatureDependenciesWithPackage,
                  bodyDependenciesWithPackage,
                  imports,
-                 stringRepresentation):
+                 stringRepresentation,
+                 description=""):
         self.returnType = returnType
         self.methodName = methodName
         self.className = className
@@ -49,7 +50,7 @@ class MethodInfo:
         self.bodyDependenciesWithPackage = bodyDependenciesWithPackage
         self.imports = imports
         self.stringRepresentation = stringRepresentation
-        self.description = ""
+        self.description = description
 
     def to_dict(self):
         return {
@@ -74,26 +75,48 @@ class MethodInfo:
         }
 
     @classmethod
-    def from_dict(cls, data):
-        return cls(
-            returnType=data["returnType"],
-            methodName=data["methodName"],
-            className=data["className"],
-            packageName=data["packageName"],
-            body=data["body"],
-            modifier=data["modifier"],
-            signature=data["signature"],
-            parametersNames=data["parametersNames"],
-            parametersTypes=data["parametersTypes"],
-            annotations=data["annotations"],
-            exceptions=data["exceptions"],
-            signatureDependencies=data["signatureDependencies"],
-            bodyDependencies=data["bodyDependencies"],
-            signatureDependenciesWithPackage=data["signatureDependenciesWithPackage"],
-            bodyDependenciesWithPackage=data["bodyDependenciesWithPackage"],
-            imports=data["imports"],
-            stringRepresentation=data["stringRepresentation"],
-        )
+    def from_dict(cls, data, isDescription=True):
+        if isDescription:
+            return cls(
+                returnType=data["returnType"],
+                methodName=data["methodName"],
+                className=data["className"],
+                packageName=data["packageName"],
+                body=data["body"],
+                modifier=data["modifier"],
+                signature=data["signature"],
+                parametersNames=data["parametersNames"],
+                parametersTypes=data["parametersTypes"],
+                annotations=data["annotations"],
+                exceptions=data["exceptions"],
+                signatureDependencies=data["signatureDependencies"],
+                bodyDependencies=data["bodyDependencies"],
+                signatureDependenciesWithPackage=data["signatureDependenciesWithPackage"],
+                bodyDependenciesWithPackage=data["bodyDependenciesWithPackage"],
+                imports=data["imports"],
+                stringRepresentation=data["stringRepresentation"],
+                description=data["description"],
+            )
+        else:
+            return cls(
+                returnType=data["returnType"],
+                methodName=data["methodName"],
+                className=data["className"],
+                packageName=data["packageName"],
+                body=data["body"],
+                modifier=data["modifier"],
+                signature=data["signature"],
+                parametersNames=data["parametersNames"],
+                parametersTypes=data["parametersTypes"],
+                annotations=data["annotations"],
+                exceptions=data["exceptions"],
+                signatureDependencies=data["signatureDependencies"],
+                bodyDependencies=data["bodyDependencies"],
+                signatureDependenciesWithPackage=data["signatureDependenciesWithPackage"],
+                bodyDependenciesWithPackage=data["bodyDependenciesWithPackage"],
+                imports=data["imports"],
+                stringRepresentation=data["stringRepresentation"],
+            )
 
     def __repr__(self):
         return f"methodName='{self.methodName}', returnType='{self.returnType}', className='{self.className}', packageName='{self.packageName}')"

@@ -26,14 +26,13 @@ def collect_method_info(**kwargs):
 
         if res.status_code == 200:
             methods = json.loads(res.content)
-            MethodList = []
-            for method in methods:
-                log_debug(f"parser restive{method_name}")
-                method_info = MethodInfo.from_dict(method)
-                log_debug(f"parser restive{method_name} made dict")
-                method_info.set_description()
-                MethodList.append(method_info.to_dict())
-            return MethodList
+            method_List = []
+            if isinstance(methods, list):
+                for method in methods:
+                    Generate_method_info(method_List, method, method_name)
+            else:
+                Generate_method_info(method_List, methods, method_name)
+            return method_List
         else:
             log_debug(f"parserProblem: {method_name} : status code: {res.status_code} ")
             return None  # o potresti voler ritornare qualcosa che indica un fallimento
@@ -42,11 +41,28 @@ def collect_method_info(**kwargs):
         return None
 
 
+def Generate_method_info(method_list, method, method_name):
+    log_debug(f"parser restive {method_name}")
+    method_info = MethodInfo.from_dict(method,False)
+    log_debug(f"parser restive {method_name} made dict")
+    method_info.set_description()
+    method_list.append(method_info.to_dict())
+
+
 @shared_task()
-def class_embedding_handler(all_result):
-    chunk = []
+def class_embedding_handler(all_result, classinfo):
+    from indexing.classInfo import ClassInfo
+    classinfo_ = ClassInfo.from_dict(classinfo)
+    method_info_list=[]
     for result in all_result:
-        pass
+        # the methods can have overriding so the result can be a list
+        if result:
+            log_debug(f"result :  {result}")
+            method_info = MethodInfo.from_dict(result)
+            log_debug(f"method info :  {method_info.get_description()}")
+            method_info_list.append(method_info)
+    classinfo_.method_infos = method_info_list
+    classinfo_.generate_class_embedding()
 
     pass
 
