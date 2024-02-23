@@ -254,12 +254,12 @@ class ClassInfo:
                 "model": "gpt-4-turbo-preview",
                 "messages": [
                     {"role": "system", "content": f"{Create_Tech_functional_class}"},
-                    {"role": "user", "content": f"{self.description_class_prompt_data}"},
+                    {"role": "user", "content": f"{self.description_class_prompt_data()}"},
                 ],
                 "max_tokens": 1024,
                 "temperature": 0
             }
-
+            log_debug(f"OPEN AI CALL for: {self.class_name}")
             response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
             response.raise_for_status()  # Raises an exception for 4XX/5XX responses
 
