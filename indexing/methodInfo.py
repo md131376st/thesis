@@ -3,6 +3,7 @@ import os
 
 import requests
 
+from indexing.baseInfo import BaseInfo
 from script.prompt import Create_Tech_functional
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 from dotenv import load_dotenv
@@ -13,26 +14,12 @@ def add_string_to_file(file_path, string_to_add):
         file.write(string_to_add + '\n')
 
 
-class MethodInfo:
-    def __init__(self,
-                 returnType,
-                 methodName,
-                 className,
-                 packageName,
-                 body,
-                 modifier,
-                 signature,
-                 parametersNames,
-                 parametersTypes,
-                 annotations,
-                 exceptions,
-                 signatureDependencies,
-                 bodyDependencies,
-                 signatureDependenciesWithPackage,
-                 bodyDependenciesWithPackage,
-                 imports,
-                 stringRepresentation,
+class MethodInfo(BaseInfo):
+    def __init__(self, returnType, methodName, className, packageName, body, modifier, signature, parametersNames,
+                 parametersTypes, annotations, exceptions, signatureDependencies, bodyDependencies,
+                 signatureDependenciesWithPackage, bodyDependenciesWithPackage, imports, stringRepresentation,
                  description=""):
+        super().__init__()
         self.returnType = returnType
         self.methodName = methodName
         self.className = className

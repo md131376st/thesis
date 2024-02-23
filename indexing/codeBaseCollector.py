@@ -3,22 +3,28 @@ import json
 import requests
 
 from fileService import settings
+from indexing.BaseCollector import BaseCollector
 from indexing.classInfo import ClassInfo, generate_embeddings
 from indexing.packageInfo import PackageInfo
 from indexing.utility import packet_info_call
 from simplePipline.utils.utilities import log_debug
 
 
-class ClassPackageCollector:
-    def __init__(self, path):
+class CodeBaseCollector(BaseCollector):
+    def __init__(self, path, packagePrefix=None):
+        super().__init__()
         self.packages = []
         self.sourceCodePath = path
+        self.packagePrefix = packagePrefix
+
+    def collect(self):
+        pass
 
     def set_packages(self, packages):
         self.packages = packages
 
-    def collect_package_info(self, prefix):
-        data = packet_info_call(prefix=prefix, sourceCodePath=self.sourceCodePath)
+    def collect_package_info(self):
+        data = packet_info_call(prefix=self.packagePrefix, sourceCodePath=self.sourceCodePath)
         if data is not None:
             package_info = PackageInfo(data["packageName"])
 

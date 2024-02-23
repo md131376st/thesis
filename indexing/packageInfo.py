@@ -8,12 +8,14 @@ from indexing.classInfo import generate_embeddings, ClassInfo
 from indexing.utility import packet_info_call
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 from script.prompt import Create_Tech_functional_package
+from .baseInfo import BaseInfo
 
 from .tasks import *
 
 
-class PackageInfo:
+class PackageInfo(BaseInfo):
     def __init__(self, package_name):
+        super().__init__()
         self.package_name = package_name
         self.classes = []  # List to store ClassInfo instances
         self.description = ""

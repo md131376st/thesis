@@ -9,6 +9,7 @@ import requests
 from celery import group, app, shared_task, chord, chain
 
 from fileService import settings
+from indexing.baseInfo import BaseInfo
 from indexing.methodInfo import MethodInfo
 from indexing.models import Record
 from script.prompt import Create_Tech_functional_class
@@ -47,8 +48,9 @@ def generate_embeddings(chunks,
     pass
 
 
-class ClassInfo:
+class ClassInfo(BaseInfo):
     def __init__(self, class_name, path):
+        super().__init__()
         self.sourceCodePath = path
         self.class_name = class_name
         self.qualified_class_name = None

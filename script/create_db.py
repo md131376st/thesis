@@ -1,5 +1,5 @@
 from indexing.classInfo import generate_embeddings
-from indexing.codeBaseCollector import ClassPackageCollector
+from indexing.codeBaseCollector import CodeBaseCollector
 import pickle
 import tiktoken
 
@@ -25,8 +25,8 @@ def token_count(text):
 
 
 def parse_package(prefix):
-    collector = ClassPackageCollector(sourceCodePath)
-    collector.collect_package_info(prefix)
+    collector = CodeBaseCollector(sourceCodePath, prefix)
+    collector.collect_package_info()
     collected_data = collector.get_collected_data()
     return collected_data
 
@@ -64,13 +64,13 @@ def create_db(prefix, save=False):
 
 
 if __name__ == '__main__':
-    # prefix = "com.intesasanpaolo.bear.sxdr0.metaconto"
+    prefix = "com.intesasanpaolo.bear.sxdr0.metaconto"
     # collector = ClassPackageCollector(sourceCodePath)
     # collector.collect_package_info(prefix)
     # collected_data = collector.get_collected_data()
     # descriptions = []
     collected_data = get_instance("temp2.pkl")
-    cpc = ClassPackageCollector(sourceCodePath)
+    cpc = CodeBaseCollector(sourceCodePath, prefix)
     cpc.set_packages(collected_data)
     cpc.generate_codebase_embeddings()
     for package in collected_data:
