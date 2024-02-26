@@ -39,7 +39,10 @@ def update_package_info(results, packageInfo_data):
     description = packageInfo.generate_description()
     if description:
         packageInfo.set_description(description)
+        # save package index level
         packageInfo.generate_package_embeddings()
+    # add  root package descriptions
+    packageInfo.generate_codebase_embeddings()
     return packageInfo.to_dict()
 
 
@@ -115,15 +118,17 @@ def process_package_results(all_results):
                 for result_ in result:
                     method_info = MethodInfo.from_dict(result_)
                     method_info_list.append(method_info)
-        # generate class Descriptions
 
+        # generate class Descriptions
         classInfo.method_infos = method_info_list
         log_debug("generate Class description ")
         description = classInfo.generate_description()
         if description:
             classInfo.set_description(description)
+            # generate class level embeddings
             classInfo.generate_class_embedding()
         results.append(classInfo.to_dict())
+
 
     return results
 
@@ -131,16 +136,15 @@ def process_package_results(all_results):
 @shared_task()
 def class_embedding_handler(all_result, classinfo):
     from indexing.classInfo import ClassInfo
-    log_debug(f"class_embedding_handler: {classinfo}")
+    log_debug(f"class_embedding_handler: {len(all_result)}\n ***********\n")
+    log_debug(f"class_embedding_handler: {all_result}\n ***********\n")
     classinfo_ = ClassInfo.from_dict(classinfo)
-    log_debug(f"class_embedding_handler: {classinfo.class_name}")
+    log_debug(f"class_embedding_handler: {classinfo_.class_name}")
     method_info_list = []
     for result in all_result:
         # the methods can have overriding so the result can be a list
-        if result:
-            log_debug(f"result :  {result}")
-            method_info = MethodInfo.from_dict(result)
-            log_debug(f"method info :  {method_info.get_description()}")
+        if result[0]:
+            method_info = MethodInfo.from_dict(result[0])
             method_info_list.append(method_info)
     classinfo_.method_infos = method_info_list
     classinfo_.generate_class_embedding()

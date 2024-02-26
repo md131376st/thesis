@@ -63,25 +63,6 @@ class CodeBaseCollector(BaseCollector):
                 class_with_packages.append(full_name)
         return class_with_packages
 
-    def get_methods_for_class(self, class_name, package_name):
-        try:
-            response = requests.get(
-                f"{settings.PARSER_URL}classInfo/{package_name}.{class_name}",
-                headers={
-                    "sourceCodePath": self.sourceCodePath
-                }
-            )
-            if response.status_code == 200:
-                data = response.json()
-                return data
-            else:
-                log_debug(
-                    f"Failed to retrieve classinfo  for {package_name}.{class_name} with status code {response.status_code}")
-                return None
-        except Exception as e:
-            log_debug(f"An error while classinfo   for {package_name}.{class_name}: {e}")
-            return None
-
     def generate_codebase_embeddings(self):
         chunks = []
         metadata = []
@@ -96,7 +77,7 @@ class CodeBaseCollector(BaseCollector):
         else:
             log_debug(f"empty class function")
         collection_name = "MyCodeBase"
-        collection_metadata = self.get_meta_data()
+        collection_metadata = {}
         generate_embeddings(chunks, metadata, collection_name, collection_metadata)
 
     def get_meta_data(self):

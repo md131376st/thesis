@@ -4,7 +4,7 @@ import os
 import requests
 from celery import chain, group
 
-from indexing.utility import packet_info_call
+from indexing.utility import packet_info_call, format_collection_name
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 from script.prompt import Create_Tech_functional_package
 from .baseInfo import BaseInfo
@@ -87,11 +87,30 @@ class PackageInfo(BaseInfo):
                     }
                 )
                 metadata.append(class_.get_meta_data())
-            collection_name = str(self.package_name).replace(".", "-")[-60:]
+            collection_name = format_collection_name(str(self.package_name))
             collection_metadata = self.get_meta_data()
             generate_embeddings(chunks, metadata, collection_name, collection_metadata)
         else:
             log_debug(f"empty package")
+
+    def generate_codebase_embeddings(self):
+       from indexing.classInfo import generate_embeddings
+       if self.description:
+        collection_name = "MyCodeBase"
+        chunks = []
+        chunks.append(
+            {
+                "text": self.description
+            }
+        )
+        collection_metadata = None
+        generate_embeddings([
+            {
+                "text": self.description
+            }
+        ], [
+            self.get_meta_data()
+        ], collection_name, collection_metadata)
 
     def description_package_prompt_data(self):
         description = f"Package name : {self.package_name} \n"

@@ -1,4 +1,3 @@
-import hashlib
 import json
 import os
 
@@ -8,6 +7,7 @@ from celery import group, chain
 from fileService import settings
 from indexing.baseInfo import BaseInfo
 from indexing.methodInfo import MethodInfo
+from indexing.utility import format_collection_name
 
 from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import filter_empty_values, log_debug
@@ -168,23 +168,12 @@ class ClassInfo(BaseInfo):
         for method in self.method_infos:
             method.set_description()
 
-    def format_collection_name(self, qualified_class_name):
-        # Crea l'oggetto hash SHA-256
-        sha256_hash = hashlib.sha256()
-        # Aggiorna l'hash con i byte della stringa input
-        sha256_hash.update(qualified_class_name.encode("utf-8"))
-        # Ottiene la rappresentazione esadecimale completa dell'hash
-        hashed_string_full = sha256_hash.hexdigest()
-        # Tronca la stringa hash agli ultimi 60 caratteri
-        hashed_string_truncated = hashed_string_full[:63]
-        return hashed_string_truncated
-
     def generate_class_embedding(self):
         log_debug(f"generate embeddings: {self.class_name} ")
         chunks = []
         metadata = []
         if self.method_infos:
-            collection_name = self.format_collection_name(self.qualified_class_name)
+            collection_name = format_collection_name(self.qualified_class_name)
             for method in self.method_infos:
                 # result = Record.objects.filter(
                 #     collection_name__in=[collection_name],
