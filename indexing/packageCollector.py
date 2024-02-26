@@ -14,7 +14,7 @@ class PackageCollector(BaseCollector):
                                               sourceCodePath=self.path)
         if self.package.classes:
             log_debug(f"task result id")
-            return self.package.class_info()
+            return self.package.class_info(self.package.to_dict())
 
 
 

@@ -47,12 +47,12 @@ class PackageInfo(BaseInfo):
         else:
             log_debug(f"empty package")
 
-    def class_info(self):
+    def class_info(self, packageInfo_data):
         from indexing.tasks import collect_class_info, process_package_results
         groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in self.classes]
         workflow = chain(
             group(*groups) |
-            process_package_results.s()
+            process_package_results.s(packageInfo_data=packageInfo_data)
 
         )
         result = workflow.apply_async()
@@ -94,23 +94,20 @@ class PackageInfo(BaseInfo):
             log_debug(f"empty package")
 
     def generate_codebase_embeddings(self):
-       from indexing.classInfo import generate_embeddings
-       if self.description:
-        collection_name = "MyCodeBase"
-        chunks = []
-        chunks.append(
-            {
+        from indexing.classInfo import generate_embeddings
+        if self.description:
+            collection_name = "MyCodeBase"
+            chunks = [{
                 "text": self.description
-            }
-        )
-        collection_metadata = None
-        generate_embeddings([
-            {
-                "text": self.description
-            }
-        ], [
-            self.get_meta_data()
-        ], collection_name, collection_metadata)
+            }]
+            collection_metadata = {}
+            generate_embeddings([
+                {
+                    "text": self.description
+                }
+            ], [
+                self.get_meta_data()
+            ], collection_name, collection_metadata)
 
     def description_package_prompt_data(self):
         description = f"Package name : {self.package_name} \n"

@@ -22,7 +22,7 @@ def collect_package_class_info(**kwargs):
     groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in packageInfo.classes]
     workflow = chain(
         group(*groups) |
-        process_package_results.s() |
+        process_package_results.s(packageInfo_data=packageInfo_data) |
         update_package_info.s(packageInfo_data=packageInfo_data)
     )
     return workflow.apply_async()
@@ -30,19 +30,19 @@ def collect_package_class_info(**kwargs):
 
 @shared_task()
 def update_package_info(results, packageInfo_data):
-    log_debug(f"\n package indexing :\n {results} \n")
-    log_debug(f"\n packageInfo_data :\n {packageInfo_data} \n")
+    log_debug(f"\n update_package_info :\n {results} \n")
     # updates the package data after result and returns it
     packageInfo = PackageInfo.from_dict(packageInfo_data)
     from indexing.classInfo import ClassInfo
+    log_debug(f"\n set package class list :\n\n")
     packageInfo.classes = [ClassInfo.from_dict(groupResult) for groupResult in results]
+    log_debug(f"\n generate  package class list :\n \n")
     description = packageInfo.generate_description()
     if description:
         packageInfo.set_description(description)
-        # save package index level
-        packageInfo.generate_package_embeddings()
-    # add  root package descriptions
-    packageInfo.generate_codebase_embeddings()
+        log_debug(f"\n generate package embedding in base class  :\n\n")
+        packageInfo.generate_codebase_embeddings()
+        log_debug(f"\n finish package embedding in base class  :\n\n")
     return packageInfo.to_dict()
 
 
@@ -101,7 +101,7 @@ def collect_class_info(**kwargs):
 
 
 @shared_task
-def process_package_results(all_results):
+def process_package_results(all_results, packageInfo_data):
     log_debug("process_package_results")
     log_debug(f"\n all_results :  {all_results} \n ***********\n")
     from indexing.classInfo import ClassInfo
@@ -127,17 +127,20 @@ def process_package_results(all_results):
             classInfo.set_description(description)
             # generate class level embeddings
             classInfo.generate_class_embedding()
-        results.append(classInfo.to_dict())
-
-
-    return results
+        results.append(classInfo)
+    package_info = PackageInfo.from_dict(packageInfo_data)
+    package_info.classes = results
+    log_debug(f"generate one packages embedings: {package_info.package_name} ")
+    package_info.generate_package_embeddings()
+    results_ = [classInfo.to_dict() for classInfo in results]
+    return results_
 
 
 @shared_task()
 def class_embedding_handler(all_result, classinfo):
     from indexing.classInfo import ClassInfo
     log_debug(f"class_embedding_handler: {len(all_result)}\n ***********\n")
-    log_debug(f"class_embedding_handler: {all_result}\n ***********\n")
+    # log_debug(f"class_embedding_handler: {all_result}\n ***********\n")
     classinfo_ = ClassInfo.from_dict(classinfo)
     log_debug(f"class_embedding_handler: {classinfo_.class_name}")
     method_info_list = []
