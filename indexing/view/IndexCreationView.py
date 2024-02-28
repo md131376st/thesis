@@ -1,7 +1,7 @@
 from rest_framework.generics import CreateAPIView
 
 from filemanger.Types import IndexLevelTypes
-from filemanger.serializer.IndexCreateSerializer import IndexCreateSerializer
+from indexing.serializer.IndexCreateSerializer import IndexCreateSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from indexing.ClassCollector import ClassCollector

@@ -3,7 +3,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 
 from filemanger.piplinesteps import TaskHandler
-from filemanger.serializer.RetrivalSerializer import RetrivalSerializer
+from indexing.serializer.RetrivalSerializer import RetrivalSerializer
 
 
 class IndexRetrivalView(CreateAPIView):

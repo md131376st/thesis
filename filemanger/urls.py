@@ -1,13 +1,13 @@
 from django.conf.urls.static import static
-from django.urls import path, include
+from django.urls import path
 
 from fileService import settings
-from filemanger.view.IndexCreationView import IndexCreationView
-from filemanger.view.IndexRetrivalView import IndexRetrivalView
+from indexing.view.IndexCreationView import IndexCreationView
+from indexing.view.IndexRetrivalView import IndexRetrivalView
 from filemanger.view.ChromaDBView import CollectionInfo
 from filemanger.view.EmbeddingView import EmbeddingView
 from filemanger.view.fileMangerView import Fileupload, Pipline, PreProcess, FeatureExtract
-from filemanger.view.celeryMangerView import CeleryManger
+from indexing.view.celeryMangerView import CeleryManger
 
 app_name = 'filemanger'
 
