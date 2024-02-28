@@ -42,7 +42,7 @@ services:
 
   celery:
     build: .
-    command: celery -A fileService worker --loglevel=info
+    command: celery -A C worker --loglevel=info
     volumes:
       - .:/code
     depends_on:
