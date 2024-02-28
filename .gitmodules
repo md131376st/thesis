@@ -1,0 +1,3 @@
+[submodule "Codeparser"]
+	path = Codeparser
+	url = git@ssh.dev.azure.com:v3/Iriscube-Reply/Codeparser/Codeparser
