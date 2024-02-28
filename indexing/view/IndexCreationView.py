@@ -15,15 +15,13 @@ class IndexCreationView(CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            if serializer.validated_data["indexType"] == IndexLevelTypes.CODEBASE.value:
-                return self.codebase_index(serializer.validated_data["path"],
-                                           serializer.validated_data["collectionName"])
+
+            if serializer.validated_data["indexType"] == IndexLevelTypes.CLASS.value:
+                return self.class_index(serializer.validated_data["path"],
+                                        serializer.validated_data["collectionName"])
             elif serializer.validated_data["indexType"] == IndexLevelTypes.PACKAGE.value:
                 return self.package_index(serializer.validated_data["path"],
                                           serializer.validated_data["collectionName"])
-            elif serializer.validated_data["indexType"] == IndexLevelTypes.CLASS.value:
-                return self.class_index(serializer.validated_data["path"],
-                                        serializer.validated_data["collectionName"])
             else:
                 return self.codebase_index(serializer.validated_data["path"],
                                            serializer.validated_data["collectionName"])
@@ -32,14 +30,14 @@ class IndexCreationView(CreateAPIView):
 
     def codebase_index(self, path, collection_name):
         # taskid = "codebase"
-        codebaseCollector = CodeBaseCollector(path, collection_name)
-        taskid = codebaseCollector.collect()
+        codebase_collector = CodeBaseCollector(path, collection_name)
+        taskid = codebase_collector.collect()
         return Response({"taskid": taskid}, status=status.HTTP_202_ACCEPTED)
 
     def package_index(self, path, collection_name):
 
-        PackageCollector = inpc.PackageCollector(path, collection_name)
-        taskid = PackageCollector.collect()
+        package_collector = inpc.PackageCollector(path, collection_name)
+        taskid = package_collector.collect()
 
         return Response({"taskid": taskid}, status=status.HTTP_202_ACCEPTED)
 

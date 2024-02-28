@@ -13,4 +13,3 @@ class IndexCreateSerializer(serializers.Serializer):
     )
     # this is used for in case of code base the root package in other case it is the package path or class path
     collectionName = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    pass
