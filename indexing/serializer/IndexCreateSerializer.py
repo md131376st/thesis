@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from filemanger.Types import IndexLevelTypes
+from indexing.types import IndexLevelTypes
 
 
 class IndexCreateSerializer(serializers.Serializer):

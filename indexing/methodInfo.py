@@ -4,9 +4,8 @@ import os
 import requests
 
 from indexing.baseInfo import BaseInfo
-from script.prompt import Create_Tech_functional
-from simplePipline.utils.utilities import filter_empty_values, log_debug
-from dotenv import load_dotenv
+from indexing.prompt import Create_Tech_functional
+from indexing.utility import log_debug, filter_empty_values
 
 
 def add_string_to_file(file_path, string_to_add):

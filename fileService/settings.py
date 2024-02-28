@@ -62,10 +62,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "corsheaders",
-    "filemanger.apps.FilemangerConfig",
     'celery',
     'django_celery_results',
-    'simplePipline.apps.SimplePiplineConfig',
     'indexing.apps.IndexConfig',
 
 ]

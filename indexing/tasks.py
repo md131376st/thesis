@@ -1,15 +1,12 @@
 import json
-import os
 
 import requests
 from celery import shared_task, group, chain
 
 from fileService import settings
-from indexing import packageInfo
 from indexing.methodInfo import MethodInfo
 from indexing.packageInfo import PackageInfo
-from script.prompt import Create_Tech_functional_class
-from simplePipline.utils.utilities import log_debug
+from indexing.utility import log_debug
 
 
 @shared_task()
@@ -40,9 +37,9 @@ def update_package_info(results, packageInfo_data):
     description = packageInfo.generate_description()
     if description:
         packageInfo.set_description(description)
-        log_debug(f"\n generate package embedding in base class  :\n\n")
+        log_debug(f"\n[UPDATE_PACKAGE_INFO] generate package embedding in base class {packageInfo.package_name}  :\n\n")
         packageInfo.generate_codebase_embeddings()
-        log_debug(f"\n finish package embedding in base class  :\n\n")
+        log_debug(f"\n [UPDATE_PACKAGE_INFO] finish package embedding in base class {packageInfo.package_name} :\n\n")
     return packageInfo.to_dict()
 
 
@@ -123,7 +120,7 @@ def process_package_results(all_results, packageInfo_data):
 
         # generate class Descriptions
         classInfo.method_infos = method_info_list
-        log_debug("generate Class description ")
+        log_debug(f"[PROCESS_PACKAGE_RESULT]:generate Class description {classInfo.class_name}")
         description = classInfo.generate_description()
         if description:
             classInfo.set_description(description)
@@ -132,7 +129,7 @@ def process_package_results(all_results, packageInfo_data):
         results.append(classInfo)
     package_info = PackageInfo.from_dict(packageInfo_data)
     package_info.classes = results
-    log_debug(f"[CLASS PREPROCESS] generate pack")
+    log_debug(f"[PROCESS_PACKAGE_RESULT] generate package embedding")
     log_debug(f"generate one packages embedings: {package_info.package_name} ")
     package_info.generate_package_embeddings()
     results_ = [classInfo.to_dict() for classInfo in results]

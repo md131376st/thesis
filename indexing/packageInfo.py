@@ -4,10 +4,10 @@ import os
 import requests
 from celery import chain, group
 
-from indexing.utility import packet_info_call, format_collection_name
-from simplePipline.utils.utilities import filter_empty_values, log_debug
-from script.prompt import Create_Tech_functional_package
+from indexing.utility import packet_info_call, log_debug, filter_empty_values
+
 from .baseInfo import BaseInfo
+from .prompt import Create_Tech_functional_package
 
 
 class PackageInfo(BaseInfo):

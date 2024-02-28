@@ -1,13 +1,11 @@
-import requests
+
 from celery import group
 
-from fileService import settings
 from indexing.BaseCollector import BaseCollector
 from indexing.classInfo import rag_store
 from indexing.packageInfo import PackageInfo
 from indexing.tasks import collect_package_class_info
-from indexing.utility import packet_info_call
-from simplePipline.utils.utilities import log_debug
+from indexing.utility import packet_info_call, log_debug
 
 
 class CodeBaseCollector(BaseCollector):

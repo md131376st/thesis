@@ -1,6 +1,6 @@
 from indexing.BaseCollector import BaseCollector
 from indexing.packageInfo import PackageInfo
-from simplePipline.utils.utilities import log_debug
+from indexing.utility import log_debug
 
 
 class PackageCollector(BaseCollector):
