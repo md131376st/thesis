@@ -14,11 +14,11 @@ class ClassCollector(BaseCollector):
         self.class_info.set_qualified_class_name(collection_name, exact=True)
 
     def collect(self):
-        detail = self.class_info.get_methods_for_class()
+        detail = self.class_info.get_class_info()
         log_debug(detail)
         if detail is not None:
             self.class_info.update_class_details(detail)
-            return self.class_info.method_info()
+            return self.class_info.get_method_info()
             # self.class_info.generate_class_embedding()
         # else:
         #     log_debug("empty class")

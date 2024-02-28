@@ -3,7 +3,7 @@ from celery import group
 
 from fileService import settings
 from indexing.BaseCollector import BaseCollector
-from indexing.classInfo import generate_embeddings
+from indexing.classInfo import rag_store
 from indexing.packageInfo import PackageInfo
 from indexing.tasks import collect_package_class_info
 from indexing.utility import packet_info_call
@@ -78,7 +78,7 @@ class CodeBaseCollector(BaseCollector):
             log_debug(f"empty class function")
         collection_name = "MyCodeBase"
         collection_metadata = {}
-        generate_embeddings(chunks, metadata, collection_name, collection_metadata)
+        rag_store(chunks, metadata, collection_name, collection_metadata)
 
     def get_meta_data(self):
         metadata = {

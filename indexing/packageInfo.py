@@ -26,7 +26,7 @@ class PackageInfo(BaseInfo):
 
     @classmethod
     def from_dict(cls, data):
-        from indexing.classInfo import generate_embeddings, ClassInfo
+        from indexing.classInfo import rag_store, ClassInfo
         instance = cls(data["package_name"])
         instance.classes = [ClassInfo.from_dict(ci_data) for ci_data in data["classes"]]
         instance.description = data["description"]
@@ -40,7 +40,7 @@ class PackageInfo(BaseInfo):
             for class_name in data["classNames"]:
                 class_info = ClassInfo(class_name, sourceCodePath)
                 class_info.set_qualified_class_name(data["packageName"])
-                details = class_info.get_methods_for_class()
+                details = class_info.get_class_info()
                 if details is not None:
                     class_info.update_class_details(details)
                     self.add_class(class_info)
@@ -76,7 +76,7 @@ class PackageInfo(BaseInfo):
         self.classes.append(class_info)
 
     def generate_package_embeddings(self):
-        from indexing.classInfo import generate_embeddings
+        from indexing.classInfo import rag_store
         chunks = []
         metadata = []
         if self.classes:
@@ -87,21 +87,20 @@ class PackageInfo(BaseInfo):
                     }
                 )
                 metadata.append(class_.get_meta_data())
-            collection_name = format_collection_name(str(self.package_name))
             collection_metadata = self.get_meta_data()
-            generate_embeddings(chunks, metadata, collection_name, collection_metadata)
+            rag_store(chunks, metadata, self.package_name, collection_metadata)
         else:
             log_debug(f"empty package")
 
     def generate_codebase_embeddings(self):
-        from indexing.classInfo import generate_embeddings
+        from indexing.classInfo import rag_store
         if self.description:
             collection_name = "MyCodeBase"
             chunks = [{
                 "text": self.description
             }]
             collection_metadata = {}
-            generate_embeddings([
+            rag_store([
                 {
                     "text": self.description
                 }

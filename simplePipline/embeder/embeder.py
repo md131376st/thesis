@@ -1,14 +1,11 @@
 import logging
 from enum import Enum
 
-from celery import group
 from llama_index import ServiceContext
 
 from simplePipline.baseclass import Baseclass
 from openai import OpenAI
 from llama_index.embeddings import OpenAIEmbedding
-import tiktoken
-from simplePipline.tasks import call_embedding
 from simplePipline.utils.utilities import log_debug
 
 

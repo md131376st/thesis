@@ -148,7 +148,7 @@ class MethodInfo(BaseInfo):
     def get_methodName(self):
         return self.methodName
 
-    def generate_description(self):
+    def generate_description(self) -> str | None:
         try:
             # Corrected syntax for getting environment variable
             api_key = os.environ.get("OPENAI_API_KEY")

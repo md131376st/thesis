@@ -7,20 +7,19 @@ from celery import group, chain
 from fileService import settings
 from indexing.baseInfo import BaseInfo
 from indexing.methodInfo import MethodInfo
-from indexing.utility import format_collection_name
 
 from script.prompt import Create_Tech_functional_class
 from simplePipline.utils.utilities import filter_empty_values, log_debug
 from indexing.tasks import collect_method_info, class_embedding_handler
 
 
-def generate_embeddings(chunks,
-                        metadata,
-                        collection_name,
-                        collection_metadata):
+def rag_store(chunks,
+              metadata,
+              collection_name,
+              collection_metadata) -> dict:
     try:
         response = requests.request("POST",
-                                    f"http://localhost:8000/embedding",
+                                    f"{settings.RAG_URL}/store",
                                     headers={"Content-Type": "application/json"},
                                     data=json.dumps(
                                         {
@@ -29,8 +28,7 @@ def generate_embeddings(chunks,
                                             "chunks": chunks,
                                             "metadata": metadata,
                                             "collection_metadata": collection_metadata,
-                                            "chunks_type": "txt",
-                                            "embedding_type": "text-embedding-3-large"
+                                            "embedding_type": settings.EMBEDDING_TYPE
                                         }
                                     ))
         if response.status_code != 202:
@@ -41,8 +39,6 @@ def generate_embeddings(chunks,
     except Exception as e:
         log_debug(f"error retrieving embedding for {collection_name}: {e} ")
         return {"error": "e"}
-
-    pass
 
 
 class ClassInfo(BaseInfo):
@@ -90,7 +86,7 @@ class ClassInfo(BaseInfo):
         instance.method_infos = [MethodInfo.from_dict(mi_data) for mi_data in data["method_infos"]]
         return instance
 
-    def get_methods_for_class(self):
+    def get_class_info(self) -> dict | None:
         try:
 
             response = requests.get(
@@ -154,11 +150,15 @@ class ClassInfo(BaseInfo):
                                 details['methods'],
                                 details['methodsNames'])
 
-    def method_info(self):
+    def get_method_info(self):
 
         workflow = chain(
-            group(collect_method_info.s(method_name=method_name, qualified_class_name=self.qualified_class_name,
-                                        source_code_path=self.sourceCodePath) for method_name in self.method_names),
+            group(
+                collect_method_info.s(
+                    method_name=method_name,
+                    qualified_class_name=self.qualified_class_name,
+                    source_code_path=self.sourceCodePath
+                ) for method_name in self.method_names),
             class_embedding_handler.s(classinfo=self.to_dict())
         )
         results = workflow.apply_async()
@@ -173,7 +173,6 @@ class ClassInfo(BaseInfo):
         chunks = []
         metadata = []
         if self.method_infos:
-            collection_name = format_collection_name(self.qualified_class_name)
             for method in self.method_infos:
                 # result = Record.objects.filter(
                 #     collection_name__in=[collection_name],
@@ -196,7 +195,7 @@ class ClassInfo(BaseInfo):
                     metadata.append(method.get_meta_data())
             collection_metadata = self.get_meta_data()
             log_debug(f" chunks for embeddings {chunks}")
-            generate_embeddings(chunks, metadata, collection_name, collection_metadata)
+            rag_store(chunks, metadata, self.qualified_class_name, collection_metadata)
             log_debug(f"finish  embeddings: {self.class_name} ")
             # keep track of indexes
             # if "embedding_id_list" in response:

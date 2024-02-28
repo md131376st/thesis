@@ -63,13 +63,13 @@ def collect_method_info(**kwargs):
         if res.status_code == 200:
             log_debug(f"parser response {method_name}")
             methods = json.loads(res.content)
-            method_List = []
+            method_list = []
             if isinstance(methods, list):
                 for method in methods:
-                    Generate_method_info(method_List, method, method_name)
+                    generate_method_info(method_list, method, method_name)
             else:
-                Generate_method_info(method_List, methods, method_name)
-            return method_List
+                generate_method_info(method_list, methods, method_name)
+            return method_list
         else:
             log_debug(f"parserProblem: {method_name} : status code: {res.status_code} ")
             return None  # o potresti voler ritornare qualcosa che indica un fallimento
@@ -78,11 +78,13 @@ def collect_method_info(**kwargs):
         return None
 
 
-def Generate_method_info(method_list, method, method_name):
+def generate_method_info(method_list, method, method_name):
     method_info = MethodInfo.from_dict(method, False)
-    log_debug(f" generate method description {method_name}")
+    log_debug(f"[METHOD PREPROCESS] generate method description {method_name}")
     method_info.set_description()
+    log_debug(f"[METHOD PREPROCESS] generated description is {method_info.description}")
     method_list.append(method_info.to_dict())
+    log_debug(f"[METHOD PREPROCESS] current method list is {method_list}")
 
 
 @shared_task()
@@ -130,6 +132,7 @@ def process_package_results(all_results, packageInfo_data):
         results.append(classInfo)
     package_info = PackageInfo.from_dict(packageInfo_data)
     package_info.classes = results
+    log_debug(f"[CLASS PREPROCESS] generate pack")
     log_debug(f"generate one packages embedings: {package_info.package_name} ")
     package_info.generate_package_embeddings()
     results_ = [classInfo.to_dict() for classInfo in results]
@@ -144,12 +147,10 @@ def class_embedding_handler(all_result, classinfo):
     classinfo_ = ClassInfo.from_dict(classinfo)
     log_debug(f"class_embedding_handler: {classinfo_.class_name}")
     method_info_list = []
-    for result in all_result:
+    for methods_list in all_result:
         # the methods can have overriding so the result can be a list
-        if result[0]:
-            method_info = MethodInfo.from_dict(result[0])
+        for method in methods_list:
+            method_info = MethodInfo.from_dict(method)
             method_info_list.append(method_info)
     classinfo_.method_infos = method_info_list
     classinfo_.generate_class_embedding()
-
-    pass
