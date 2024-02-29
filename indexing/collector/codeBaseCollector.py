@@ -71,7 +71,7 @@ class CodeBaseCollector(BaseCollector):
             )
             metadata.append(package.get_meta_data())
         else:
-            log_debug(f"empty class function")
+            log_debug(f"[ERROR] empty class function")
         collection_name = "MyCodeBase"
         collection_metadata = {}
         rag_store(chunks, metadata, collection_name, collection_metadata)

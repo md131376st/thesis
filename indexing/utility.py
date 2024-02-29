@@ -20,11 +20,11 @@ def packet_info_call(sourceCodePath, prefix):
             data = json.loads(res.content)
             return data
         else:
-            log_debug(f"Failed to retrieve package {prefix} with status code {res.status_code}")
+            log_debug(f"[ERROR] Failed to retrieve package {prefix} with status code {res.status_code}")
             return None
 
     except Exception as e:
-        log_debug(f"An error on  {prefix}: {e}")
+        log_debug(f"[ERROR] An error on  {prefix}: {e}")
         return None
 
 
@@ -41,7 +41,7 @@ def format_collection_name(qualified_class_name):
 
 
 def log_debug(message):
-    logger = logging.getLogger('my_app')
+    logger = logging.getLogger('AI_CODEBASE_EXPERT')
     logger.debug(message)
     return
 
@@ -69,12 +69,12 @@ def rag_store(chunks,
                                         }
                                     ))
         if response.status_code != 202:
-            log_debug(f"error: {response}")
+            log_debug(f"[ERROR]: {response}")
             return {"error": response}
         else:
             return response.json()
     except Exception as e:
-        log_debug(f"error retrieving embedding for {collection_name}: {e} ")
+        log_debug(f"[ERROR] retrieving embedding for {collection_name}: {e} ")
         return {"error": "e"}
 
 
@@ -94,10 +94,10 @@ def rag_retrival(question,
                                     headers={"Content-Type": "application/json"},
                                     data=json.dumps(request_data))
         if response.status_code != 200:
-            log_debug(f"error: {response}")
+            log_debug(f"[ERROR]: {response}")
             return {"error": response.json()}
         else:
             return response.json()
     except Exception as e:
-        log_debug(f"error retrieving embedding for {collection_name}: {e} ")
+        log_debug(f"[ERROR] error retrieving embedding for {collection_name}: {e} ")
         return {"error": "e"}

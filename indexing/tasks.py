@@ -27,13 +27,13 @@ def collect_package_class_info(**kwargs):
 
 @shared_task()
 def update_package_info(results, packageInfo_data):
-    log_debug(f"\n update_package_info :\n {results} \n")
+    log_debug(f"\n [UPDATE_PACKAGE_INFO] start")
     # updates the package data after result and returns it
     packageInfo = PackageInfo.from_dict(packageInfo_data)
     from indexing.info.classInfo import ClassInfo
-    log_debug(f"\n set package class list :\n\n")
+    log_debug(f"\n [UPDATE_PACKAGE_INFO] set package class list :\n\n")
     packageInfo.classes = [ClassInfo.from_dict(groupResult) for groupResult in results]
-    log_debug(f"\n generate  package class list :\n \n")
+    log_debug(f"\n [UPDATE_PACKAGE_INFO] generate package class list :\n \n")
     description = packageInfo.generate_description()
     if description:
         packageInfo.set_description(description)
