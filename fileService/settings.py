@@ -145,7 +145,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'my_app': {  # Use your app's name here
+        'AI_CODEBASE_EXPERT': {  # Use your app's name here
             'handlers': ['app_file'],
             'level': 'DEBUG',
             'propagate': False,  # Prevents log messages from being propagated to the root logger
