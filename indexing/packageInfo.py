@@ -4,7 +4,7 @@ import os
 import requests
 from celery import chain, group
 
-from indexing.utility import packet_info_call, log_debug, filter_empty_values
+from indexing.utility import packet_info_call, log_debug, filter_empty_values, rag_store
 
 from .baseInfo import BaseInfo
 from .prompt import Create_Tech_functional_package
@@ -26,7 +26,7 @@ class PackageInfo(BaseInfo):
 
     @classmethod
     def from_dict(cls, data):
-        from indexing.classInfo import rag_store, ClassInfo
+        from indexing.classInfo import ClassInfo
         instance = cls(data["package_name"])
         instance.classes = [ClassInfo.from_dict(ci_data) for ci_data in data["classes"]]
         instance.description = data["description"]

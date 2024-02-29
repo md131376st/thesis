@@ -46,17 +46,58 @@ def log_debug(message):
     return
 
 
-def readfile(path):
-    pass
-
-
-def Get_json_filename(filename):
-    return f"{filename.split('/')[1].rsplit('.')[0]}.json"
-
-
-def Get_html_filename(filename):
-    return f"{settings.PROCESSFIELS}/{str(filename.name).split('.')[0]}.html"
-
-
 def filter_empty_values(data):
     return {k: v for k, v in data.items() if v != ''}
+
+
+def rag_store(chunks,
+              metadata,
+              collection_name,
+              collection_metadata) -> dict:
+    try:
+        response = requests.request("POST",
+                                    f"{settings.RAG_URL}/store",
+                                    headers={"Content-Type": "application/json"},
+                                    data=json.dumps(
+                                        {
+                                            "collection_name": f"{collection_name}",
+                                            "is_async": True,
+                                            "chunks": chunks,
+                                            "metadata": metadata,
+                                            "collection_metadata": collection_metadata,
+                                            "embedding_type": settings.EMBEDDING_TYPE
+                                        }
+                                    ))
+        if response.status_code != 202:
+            log_debug(f"error: {response}")
+            return {"error": response}
+        else:
+            return response.json()
+    except Exception as e:
+        log_debug(f"error retrieving embedding for {collection_name}: {e} ")
+        return {"error": "e"}
+
+
+def rag_retrival(question,
+                 n_results,
+                 collection_name) -> dict:
+    try:
+        request_data = {
+            "collection_name": collection_name,
+            "question": question,
+            "n_results": n_results,
+            "embedding_type": settings.EMBEDDING_TYPE
+        }
+        log_debug(request_data)
+        response = requests.request("POST",
+                                    f"{settings.RAG_URL}/retrieve",
+                                    headers={"Content-Type": "application/json"},
+                                    data=json.dumps(request_data))
+        if response.status_code != 200:
+            log_debug(f"error: {response}")
+            return {"error": response.json()}
+        else:
+            return response.json()
+    except Exception as e:
+        log_debug(f"error retrieving embedding for {collection_name}: {e} ")
+        return {"error": "e"}

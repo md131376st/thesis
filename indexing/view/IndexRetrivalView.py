@@ -14,14 +14,17 @@ class IndexRetrivalView(CreateAPIView):
         if serializer.is_valid():
             question = serializer.validated_data["question"]
             classname = serializer.validated_data.get("className")
-            embedding_type = serializer.validated_data["embedding_type"]
             n_results = serializer.validated_data["n_results"]
-            result = TaskHandler.query_handler(question, classname, embedding_type, n_results)
-            return Response(data={
-                "answer": result
-            }, status=status.HTTP_200_OK)
+            result = TaskHandler.query_handler(question, classname, n_results)
+            if "error" in result:
+                return Response(
+                    data={"error": result},
+                    status=status.HTTP_404_NOT_FOUND
 
-
-
+                )
+            else:
+                return Response(data={
+                    "answer": result
+                }, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

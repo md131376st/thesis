@@ -10,35 +10,7 @@ from indexing.methodInfo import MethodInfo
 from indexing.prompt import Create_Tech_functional_class
 
 from indexing.tasks import collect_method_info, class_embedding_handler
-from indexing.utility import log_debug, filter_empty_values
-
-
-def rag_store(chunks,
-              metadata,
-              collection_name,
-              collection_metadata) -> dict:
-    try:
-        response = requests.request("POST",
-                                    f"{settings.RAG_URL}/store",
-                                    headers={"Content-Type": "application/json"},
-                                    data=json.dumps(
-                                        {
-                                            "collection_name": f"{collection_name}",
-                                            "is_async": True,
-                                            "chunks": chunks,
-                                            "metadata": metadata,
-                                            "collection_metadata": collection_metadata,
-                                            "embedding_type": settings.EMBEDDING_TYPE
-                                        }
-                                    ))
-        if response.status_code != 202:
-            log_debug(f"error: {response}")
-            return {"error": response}
-        else:
-            return response.json()
-    except Exception as e:
-        log_debug(f"error retrieving embedding for {collection_name}: {e} ")
-        return {"error": "e"}
+from indexing.utility import log_debug, filter_empty_values, rag_store
 
 
 class ClassInfo(BaseInfo):

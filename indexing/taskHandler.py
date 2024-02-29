@@ -1,74 +1,71 @@
-
+from typing import Type, Dict, Any, List
 
 from fileService import settings
-from indexing.utility import log_debug
+from indexing.utility import log_debug, rag_retrival
 
 
 class TaskHandler:
 
     @staticmethod
-    def query_handler(question, classname, embedding_type, n_results):
+    def package_retrival(question, package_name, n_results) -> dict[str, list[Any | None] | Any] | None:
+        print("packaage_retrival", type(n_results))
+        package_result = rag_retrival(question=question,
+                                      collection_name=package_name,
+                                      n_results=n_results)
+        if "error" in package_result:
+            log_debug(f"[Package Retrival Error] {package_result}")
+            return None
+        elif "answer" in package_result:
+            package_final_result = dict()
+            package_final_result["package"] = package_result["answer"]
+            class_final_result = []
+            for class_ in package_result["answer"]:
+                if "metadata" in class_ and "qualified_class_name" in class_["metadata"]:
+                    class_result = TaskHandler.class_retrival(question,
+                                                              class_["metadata"]["qualified_class_name"],
+                                                              n_results)
+                    if class_result:
+                        class_final_result.append(class_result)
+            package_final_result["class"] = class_final_result
+            return package_final_result
+
+    @staticmethod
+    def class_retrival(question, qualified_class_name, n_results):
+        print("class_retrival", type(n_results))
+        class_result = rag_retrival(question=question,
+                                    collection_name=qualified_class_name,
+                                    n_results=n_results)
+        if "error" in class_result:
+            log_debug(f"[Class Retrival Error] {class_result}")
+            return None
+        elif "answer" in class_result:
+            return class_result["answer"]
+
+    @staticmethod
+    def query_handler(question, collection_name, n_results):
         # get question embedding
-        pass
+        log_debug(f"collection_name: {collection_name}")
         # start quering form root
-        # if classname is None:
-        #     result = []
-        #     collection = db.get_collection(name=settings.INDEXROOT)
-        #     results = collection.query(query_embeddings=embedding,
-        #                                n_results=n_results)
-        #     for text, metadata in zip(
-        #             results["documents"][0],
-        #             results["metadatas"][0]):
-        #         if "package_name" in metadata:
-        #             package_collection_name = get_package_name(metadata["package_name"])
-        #             package_collection = db.get_collection(name=package_collection_name)
-        #             packageResult = package_collection.query(query_embeddings=embedding,
-        #                                                      n_results=n_results)
-        #             packageinfo = []
-        #             for package_text, package_meta_data in zip(
-        #                     packageResult["documents"][0],
-        #                     packageResult["metadatas"][0]):
-        #                 data = {
-        #                     "package": package_text,
-        #                     "metadata": package_meta_data
-        #                 }
-        #
-        #                 if "qualified_class_name" in package_meta_data:
-        #
-        #                     classinfo = []
-        #                     class_collection_name = get_class_collection_name(package_meta_data["qualified_class_name"])
-        #                     class_collection = db.get_collection(name=class_collection_name)
-        #                     classResult = class_collection.query(query_embeddings=embedding,
-        #                                                          n_results=n_results)
-        #                     for classinfo_text, classinfo_text_meta_data in zip(
-        #                             classResult["documents"][0],
-        #                             classResult["metadatas"][0]):
-        #                         classinfo.append(
-        #                             {
-        #                                 "text": classinfo_text,
-        #                                 "metadata": classinfo_text_meta_data
-        #                             }
-        #                         )
-        #                     data["class"] = classinfo
-        #                 packageinfo.append(data)
-        #             result.append(packageinfo)
-        #
-        #     return result
-        #
-        # # just returning the level base
-        # else:
-        #     collection = db.get_collection(name=classname)
-        #     results = collection.query(query_embeddings=embedding,
-        #                                n_results=n_results)
-        #     result = []
-        #     log_debug(results)
-        #     for text, metadata in zip(
-        #             results["documents"][0],
-        #             results["metadatas"][0]):
-        #         result.append(
-        #             {
-        #                 "text": text,
-        #                 "metadata": metadata
-        #             }
-        #         )
-        #     return result
+        if collection_name is None:
+            log_debug(f"hi")
+            collection_name = settings.INDEXROOT
+            log_debug(f"collection_name: {collection_name}")
+            # print(type(n_results))
+            result = rag_retrival(question=question,
+                                  collection_name=collection_name,
+                                  n_results=n_results)
+            if "error" in result:
+                return {
+                    "status": "error",
+                    "message": "the collection doesn't exist"
+                }
+            elif "answer" in result:
+                final_result = []
+                for package in result["answer"]:
+                    if "metadata" in package and "package_name" in package["metadata"]:
+                        package_result = TaskHandler.package_retrival(question=question,
+                                                                      package_name=package["metadata"]["package_name"],
+                                                                      n_results=n_results)
+                        if package_result:
+                            final_result.append(package_result)
+                return final_result
