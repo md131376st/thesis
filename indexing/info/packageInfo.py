@@ -4,7 +4,7 @@ import os
 import requests
 from celery import chain, group
 
-from indexing.utility import packet_info_call, log_debug, filter_empty_values
+from indexing.utility import packet_info_call, log_debug, filter_empty_values, open_ai_description_generator
 
 from indexing.info.baseInfo import BaseInfo
 from indexing.prompt import Create_Tech_functional_package
@@ -115,45 +115,10 @@ class PackageInfo(BaseInfo):
         return description
 
     def generate_description(self):
-        try:
-            # Corrected syntax for getting environment variable
-            api_key = os.environ.get("OPENAI_API_KEY")
-            if not api_key:
-                log_debug("[ERROR] OPENAI_API_KEY is not set in environment variables.")
-                return None  # Return None if API key is not found
-            log_debug(f" [OPEN AI CALL] package info : {self.package_name}")
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {api_key}"
-            }
-            payload = {
-                "model": "gpt-4-turbo-preview",
-                "messages": [
-                    {"role": "system", "content": f"{Create_Tech_functional_package}"},
-                    {"role": "user", "content": f"{self.description_package_prompt_data()}"},
-                ],
-                "max_tokens": 1024,
-                "temperature": 0
-            }
-
-            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-            response.raise_for_status()  # Raises an exception for 4XX/5XX responses
-
-            # Parsing the response assuming the structure is as expected
-            return response.json()["choices"][0]['message']['content']
-
-        except requests.exceptions.RequestException as e:
-            # Handle network-related errors here
-            log_debug(f"[ERROR] [OPEN AI] An error occurred while making the request: {e}")
-        except KeyError as e:
-            # Handle errors related to accessing parts of the response
-            log_debug(f"[ERROR] [OPEN AI] An error occurred while parsing the response: {e}")
-        except Exception as e:
-            # Handle other possible exceptions
-            log_debug(f"[ERROR] [OPEN AI] An unexpected error occurred: {e}")
-
-            # Return None if the function cannot complete as expected due to any error
-        return None
+        return open_ai_description_generator(system_prompt=Create_Tech_functional_package,
+                                             content=self.description_package_prompt_data(),
+                                             sender=self.package_name
+                                             )
 
     def __repr__(self):
         return f"{self.package_name}', classes={self.classes})"

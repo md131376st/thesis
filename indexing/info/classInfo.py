@@ -1,5 +1,4 @@
 import json
-import os
 
 import requests
 from celery import group, chain
@@ -10,7 +9,7 @@ from indexing.info.methodInfo import MethodInfo
 from indexing.prompt import Create_Tech_functional_class
 
 from indexing.tasks import collect_method_info, class_embedding_handler
-from indexing.utility import log_debug, filter_empty_values, rag_store
+from indexing.utility import log_debug, filter_empty_values, rag_store, open_ai_description_generator
 
 
 class ClassInfo(BaseInfo):
@@ -181,45 +180,10 @@ class ClassInfo(BaseInfo):
         return prompt_data
 
     def generate_description(self):
-        try:
-            # Corrected syntax for getting environment variable
-            api_key = os.environ.get("OPENAI_API_KEY")
-            if not api_key:
-                log_debug("OPENAI_API_KEY is not set in environment variables.")
-                return None  # Return None if API key is not found
-
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {api_key}"
-            }
-            payload = {
-                "model": "gpt-4-turbo-preview",
-                "messages": [
-                    {"role": "system", "content": f"{Create_Tech_functional_class}"},
-                    {"role": "user", "content": f"{self.description_class_prompt_data()}"},
-                ],
-                "max_tokens": 1024,
-                "temperature": 0
-            }
-            log_debug(f"[OPEN AI CALL] for: {self.class_name}")
-            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-            response.raise_for_status()  # Raises an exception for 4XX/5XX responses
-
-            # Parsing the response assuming the structure is as expected
-            return response.json()["choices"][0]['message']['content']
-
-        except requests.exceptions.RequestException as e:
-            # Handle network-related errors here
-            log_debug(f"[ERROR] [OPEN AI] An error occurred while making the request: {e}")
-        except KeyError as e:
-            # Handle errors related to accessing parts of the response
-            log_debug(f"[ERROR] [OPEN AI] An error occurred while parsing the response: {e}")
-        except Exception as e:
-            # Handle other possible exceptions
-            log_debug(f" [ERROR] [OPEN AI] An unexpected error occurred: {e}")
-
-            # Return None if the function cannot complete as expected due to any error
-        return None
+        return open_ai_description_generator(system_prompt=Create_Tech_functional_class,
+                                             content=self.description_class_prompt_data(),
+                                             sender=self.class_name
+                                             )
 
     def set_description(self, description):
         self.description = description

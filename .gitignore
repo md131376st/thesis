@@ -105,3 +105,4 @@ db.sqlite3
 /py_dump/
 /dump.rdb
 /dbfunctional/
+/.venv/
