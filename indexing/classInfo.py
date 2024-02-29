@@ -26,6 +26,7 @@ class ClassInfo(BaseInfo):
         self.methods = []
         self.method_infos = []
         self.method_names = []
+        self.packageName = None
         self.description = ""
 
     def to_dict(self):
@@ -39,9 +40,9 @@ class ClassInfo(BaseInfo):
             "fields": self.fields,
             "methods": self.methods,
             "method_infos": [method_info.to_dict() for method_info in self.method_infos],
-
             "method_names": self.method_names,
             "description": self.description,
+            "packageName": self.packageName,
         }
 
     @classmethod
@@ -55,6 +56,7 @@ class ClassInfo(BaseInfo):
         instance.methods = data["methods"]
         instance.method_names = data["method_names"]
         instance.description = data["description"]
+        instance.packageName = data["packageName"]
         instance.method_infos = [MethodInfo.from_dict(mi_data) for mi_data in data["method_infos"]]
         return instance
 
@@ -87,7 +89,8 @@ class ClassInfo(BaseInfo):
             "extended_class": self.extended_class,
             "fields": json.dumps(self.fields) if isinstance(self.fields, list) else self.fields,
             "methods": json.dumps(self.methods) if isinstance(self.methods, list) else self.methods,
-            "description": self.description
+            "description": self.description,
+            "packageName": self.packageName
         }
         return filter_empty_values(data)
 
@@ -97,13 +100,14 @@ class ClassInfo(BaseInfo):
         else:
             self.qualified_class_name = f"{package_name}.{self.class_name}"
 
-    def fill_class_details(self, code, implemented_class, extended_class, fields, methods, method_names):
+    def fill_class_details(self, code, implemented_class, extended_class, fields, methods, method_names, packageName):
         self.code = code
         self.implemented_class = implemented_class
         self.extended_class = extended_class
         self.fields = fields
         self.methods = methods
         self.method_names = method_names
+        self.packageName =packageName
 
     def __repr__(self):
         return f"ClassInfo {self.qualified_class_name}')"
@@ -120,7 +124,8 @@ class ClassInfo(BaseInfo):
                                 details['extendedClass'],
                                 details['fields'],
                                 details['methods'],
-                                details['methodsNames'])
+                                details['methodsNames'],
+                                details['packageName'])
 
     def get_method_info(self):
 
@@ -146,18 +151,6 @@ class ClassInfo(BaseInfo):
         metadata = []
         if self.method_infos:
             for method in self.method_infos:
-                # result = Record.objects.filter(
-                #     collection_name__in=[collection_name],
-                #     name__in=[method.get_methodName()],
-                #     type__in=[Record.Type.Method]).values_list('chromaDb_id', flat=True)
-                # if result.exists():
-                #     chunks.append(
-                #         {
-                #             "text": method.get_description(),
-                #             "id": result.first()
-                #         }
-                #     )
-                # else:
                 if method.get_description():
                     chunks.append(
                         {
@@ -169,16 +162,6 @@ class ClassInfo(BaseInfo):
             log_debug(f" chunks for embeddings {chunks}")
             rag_store(chunks, metadata, self.qualified_class_name, collection_metadata)
             log_debug(f"finish  embeddings: {self.class_name} ")
-            # keep track of indexes
-            # if "embedding_id_list" in response:
-            #     records = []
-            #     for id, method in zip(response["embedding_id_list"], self.method_infos):
-            #         records.append(Record(
-            #             name=method.get_methodName(),
-            #             chromaDb_id=id,
-            #             type=Record.Type.Method,
-            #             collection_name=collection_name))
-            #     Record.objects.bulk_create(records)
 
         else:
             log_debug(f"empty class function")

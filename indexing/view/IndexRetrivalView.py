@@ -13,9 +13,10 @@ class IndexRetrivalView(CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             question = serializer.validated_data["question"]
-            classname = serializer.validated_data.get("className")
+            collection_name = serializer.validated_data.get("collection_name")
             n_results = serializer.validated_data["n_results"]
-            result = TaskHandler.query_handler(question, classname, n_results)
+            query_type = serializer.validated_data.get("query_type")
+            result = TaskHandler.query_handler(question, collection_name, n_results, query_type)
             if "error" in result:
                 return Response(
                     data={"error": result},
