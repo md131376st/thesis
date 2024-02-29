@@ -4,8 +4,8 @@ import requests
 from celery import shared_task, group, chain
 
 from fileService import settings
-from indexing.methodInfo import MethodInfo
-from indexing.packageInfo import PackageInfo
+from indexing.info.methodInfo import MethodInfo
+from indexing.info.packageInfo import PackageInfo
 from indexing.utility import log_debug
 
 
@@ -14,7 +14,7 @@ def collect_package_class_info(**kwargs):
     packageInfo_data = kwargs.get('packageInfo')
     sourceCodePath = kwargs.get('sourceCodePath')
     packageInfo = PackageInfo.from_dict(packageInfo_data)
-    log_debug(f"start code base indexing  : {packageInfo.package_name}")
+    log_debug(f"[COLLECT_PACKAGE_CLASS_INFO] package name : {packageInfo.package_name}")
     packageInfo.collect_classes(prefix=packageInfo.package_name, sourceCodePath=sourceCodePath)
     groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in packageInfo.classes]
     workflow = chain(
@@ -30,7 +30,7 @@ def update_package_info(results, packageInfo_data):
     log_debug(f"\n update_package_info :\n {results} \n")
     # updates the package data after result and returns it
     packageInfo = PackageInfo.from_dict(packageInfo_data)
-    from indexing.classInfo import ClassInfo
+    from indexing.info.classInfo import ClassInfo
     log_debug(f"\n set package class list :\n\n")
     packageInfo.classes = [ClassInfo.from_dict(groupResult) for groupResult in results]
     log_debug(f"\n generate  package class list :\n \n")
@@ -55,10 +55,10 @@ def collect_method_info(**kwargs):
                                headers={
                                    "sourceCodePath": source_code_path
                                })
-        log_debug(f"parser request {method_name}")
+        log_debug(f"[METHOD PREPROCESS] send parser request: {method_name}")
 
         if res.status_code == 200:
-            log_debug(f"parser response {method_name}")
+            log_debug(f"[METHOD PREPROCESS] receive parser request:{method_name}")
             methods = json.loads(res.content)
             method_list = []
             if isinstance(methods, list):
@@ -68,10 +68,10 @@ def collect_method_info(**kwargs):
                 generate_method_info(method_list, methods, method_name)
             return method_list
         else:
-            log_debug(f"parserProblem: {method_name} : status code: {res.status_code} ")
+            log_debug(f"[ERROR] parserProblem: {method_name} : status code: {res.status_code} ")
             return None  # o potresti voler ritornare qualcosa che indica un fallimento
     except Exception as e:
-        log_debug(f"An error retrieving method info for {method_name}: {e}")
+        log_debug(f"[ERROR] An error retrieving method info for {method_name}: {e}")
         return None
 
 
@@ -81,15 +81,14 @@ def generate_method_info(method_list, method, method_name):
     method_info.set_description()
     log_debug(f"[METHOD PREPROCESS] generated description is {method_info.description}")
     method_list.append(method_info.to_dict())
-    log_debug(f"[METHOD PREPROCESS] current method list is {method_list}")
 
 
 @shared_task()
 def collect_class_info(**kwargs):
     classinfo_data = kwargs.get('classinfo')
-    from indexing.classInfo import ClassInfo
+    from indexing.info.classInfo import ClassInfo
     classinfo = ClassInfo.from_dict(classinfo_data)
-    log_debug(f"start class indexing  : {classinfo.class_name}")
+    log_debug(f"[CLASS_INDEXING] start class name: {classinfo.class_name}")
     result = [collect_method_info.s(method_name=method_name,
                                     qualified_class_name=classinfo.qualified_class_name,
                                     source_code_path=classinfo.sourceCodePath,
@@ -101,9 +100,8 @@ def collect_class_info(**kwargs):
 
 @shared_task
 def process_package_results(all_results, packageInfo_data):
-    log_debug("process_package_results")
-    log_debug(f"\n all_results :  {all_results} \n ***********\n")
-    from indexing.classInfo import ClassInfo
+    log_debug("[PROCESS_PACKAGE_RESULT] started")
+    from indexing.info.classInfo import ClassInfo
     results = []
     for group_result in all_results:
         # generate class embeddings
@@ -129,8 +127,7 @@ def process_package_results(all_results, packageInfo_data):
         results.append(classInfo)
     package_info = PackageInfo.from_dict(packageInfo_data)
     package_info.classes = results
-    log_debug(f"[PROCESS_PACKAGE_RESULT] generate package embedding")
-    log_debug(f"generate one packages embedings: {package_info.package_name} ")
+    log_debug(f"[PROCESS_PACKAGE_RESULT] generate package embedding: {package_info.package_name} ")
     package_info.generate_package_embeddings()
     results_ = [classInfo.to_dict() for classInfo in results]
     return results_
@@ -138,11 +135,11 @@ def process_package_results(all_results, packageInfo_data):
 
 @shared_task()
 def class_embedding_handler(all_result, classinfo):
-    from indexing.classInfo import ClassInfo
-    log_debug(f"class_embedding_handler: {len(all_result)}\n ***********\n")
+    from indexing.info.classInfo import ClassInfo
+    log_debug(f"[CLASS_EMMBEDING_HANDLER] number of chunks send : {len(all_result)}")
     # log_debug(f"class_embedding_handler: {all_result}\n ***********\n")
     classinfo_ = ClassInfo.from_dict(classinfo)
-    log_debug(f"class_embedding_handler: {classinfo_.class_name}")
+    log_debug(f"[CLASS_EMMBEDING_HANDLER] class name: {classinfo_.class_name}")
     method_info_list = []
     for methods_list in all_result:
         # the methods can have overriding so the result can be a list

@@ -1,7 +1,5 @@
-from celery import shared_task
-
-from indexing.BaseCollector import BaseCollector
-from indexing.classInfo import ClassInfo
+from indexing.collector.BaseCollector import BaseCollector
+from indexing.info.classInfo import ClassInfo
 from indexing.utility import log_debug
 
 
@@ -19,6 +17,3 @@ class ClassCollector(BaseCollector):
         if detail is not None:
             self.class_info.update_class_details(detail)
             return self.class_info.get_method_info()
-            # self.class_info.generate_class_embedding()
-        # else:
-        #     log_debug("empty class")

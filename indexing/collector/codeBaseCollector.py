@@ -1,8 +1,7 @@
-
 from celery import group
 
-from indexing.BaseCollector import BaseCollector
-from indexing.packageInfo import PackageInfo
+from indexing.collector.BaseCollector import BaseCollector
+from indexing.info.packageInfo import PackageInfo
 from indexing.tasks import collect_package_class_info
 from indexing.utility import packet_info_call, log_debug, rag_store
 

@@ -4,9 +4,9 @@ from rest_framework.generics import CreateAPIView
 from indexing.serializer.IndexCreateSerializer import IndexCreateSerializer
 from rest_framework import status
 from rest_framework.response import Response
-from indexing.ClassCollector import ClassCollector
-import indexing.packageCollector as inpc
-from indexing.codeBaseCollector import CodeBaseCollector
+from indexing.collector.ClassCollector import ClassCollector
+import indexing.collector.packageCollector as inpc
+from indexing.collector.codeBaseCollector import CodeBaseCollector
 from indexing.types import IndexLevelTypes
 
 

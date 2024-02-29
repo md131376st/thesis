@@ -3,7 +3,7 @@ import os
 
 import requests
 
-from indexing.baseInfo import BaseInfo
+from indexing.info.baseInfo import BaseInfo
 from indexing.prompt import Create_Tech_functional
 from indexing.utility import log_debug, filter_empty_values
 
@@ -105,7 +105,10 @@ class MethodInfo(BaseInfo):
             )
 
     def __repr__(self):
-        return f"methodName='{self.methodName}', returnType='{self.returnType}', className='{self.className}', packageName='{self.packageName}')"
+        return (f"methodName='{self.methodName}',"
+                f" returnType='{self.returnType}',"
+                f" className='{self.className}',"
+                f" packageName='{self.packageName}')")
 
     def get_meta_data(self):
         data = {
@@ -154,7 +157,7 @@ class MethodInfo(BaseInfo):
             if not api_key:
                 log_debug("OPENAI_API_KEY is not set in environment variables.")
                 return None  # Return None if API key is not found
-            log_debug(f"OPENAI_API_CALL: {self.methodName}")
+            log_debug(f" [OPEN AI CALL] method info : {self.methodName}")
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}"
@@ -177,13 +180,13 @@ class MethodInfo(BaseInfo):
 
         except requests.exceptions.RequestException as e:
             # Handle network-related errors here
-            log_debug(f"An error occurred while making the request: {e}")
+            log_debug(f"[ERROR] [OPEN AI] An error occurred while making the request: {e}")
         except KeyError as e:
             # Handle errors related to accessing parts of the response
-            log_debug(f"An error occurred while parsing the response: {e}")
+            log_debug(f"[ERROR] [OPEN AI] An error occurred while parsing the response: {e}")
         except Exception as e:
             # Handle other possible exceptions
-            log_debug(f"An unexpected error occurred: {e}")
+            log_debug(f"[ERROR] [OPEN AI] An unexpected error occurred: {e}")
 
         # Return None if the function cannot complete as expected due to any error
         return None

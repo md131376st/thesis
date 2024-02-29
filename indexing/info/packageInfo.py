@@ -4,10 +4,10 @@ import os
 import requests
 from celery import chain, group
 
-from indexing.utility import packet_info_call, log_debug, filter_empty_values, rag_store
+from indexing.utility import packet_info_call, log_debug, filter_empty_values
 
-from .baseInfo import BaseInfo
-from .prompt import Create_Tech_functional_package
+from indexing.info.baseInfo import BaseInfo
+from indexing.prompt import Create_Tech_functional_package
 
 
 class PackageInfo(BaseInfo):
@@ -26,15 +26,15 @@ class PackageInfo(BaseInfo):
 
     @classmethod
     def from_dict(cls, data):
-        from indexing.classInfo import ClassInfo
+        from indexing.info.classInfo import ClassInfo
         instance = cls(data["package_name"])
         instance.classes = [ClassInfo.from_dict(ci_data) for ci_data in data["classes"]]
         instance.description = data["description"]
         return instance
 
     def collect_classes(self, prefix, sourceCodePath):
-        from indexing.classInfo import ClassInfo
-        log_debug(f"collect class methods in package  {prefix}")
+        from indexing.info.classInfo import ClassInfo
+        log_debug(f"[COLLECT_CLASSES] class prefix: {prefix}")
         data = packet_info_call(prefix=prefix, sourceCodePath=sourceCodePath)
         if data["classNames"] is not None:
             for class_name in data["classNames"]:
@@ -45,7 +45,7 @@ class PackageInfo(BaseInfo):
                     class_info.update_class_details(details)
                     self.add_class(class_info)
         else:
-            log_debug(f"empty package")
+            log_debug(f"[ERROR] empty package")
 
     def class_info(self, packageInfo_data):
         from indexing.tasks import collect_class_info, process_package_results
@@ -76,7 +76,7 @@ class PackageInfo(BaseInfo):
         self.classes.append(class_info)
 
     def generate_package_embeddings(self):
-        from indexing.classInfo import rag_store
+        from indexing.info.classInfo import rag_store
         chunks = []
         metadata = []
         if self.classes:
@@ -90,10 +90,10 @@ class PackageInfo(BaseInfo):
             collection_metadata = self.get_meta_data()
             rag_store(chunks, metadata, self.package_name, collection_metadata)
         else:
-            log_debug(f"empty package")
+            log_debug(f"[ERROR] empty package")
 
     def generate_codebase_embeddings(self):
-        from indexing.classInfo import rag_store
+        from indexing.info.classInfo import rag_store
         if self.description:
             collection_name = "MyCodeBase"
             chunks = [{
@@ -119,9 +119,9 @@ class PackageInfo(BaseInfo):
             # Corrected syntax for getting environment variable
             api_key = os.environ.get("OPENAI_API_KEY")
             if not api_key:
-                log_debug("OPENAI_API_KEY is not set in environment variables.")
+                log_debug("[ERROR] OPENAI_API_KEY is not set in environment variables.")
                 return None  # Return None if API key is not found
-
+            log_debug(f" [OPEN AI CALL] package info : {self.package_name}")
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}"
@@ -144,13 +144,13 @@ class PackageInfo(BaseInfo):
 
         except requests.exceptions.RequestException as e:
             # Handle network-related errors here
-            log_debug(f"An error occurred while making the request: {e}")
+            log_debug(f"[ERROR] [OPEN AI] An error occurred while making the request: {e}")
         except KeyError as e:
             # Handle errors related to accessing parts of the response
-            log_debug(f"An error occurred while parsing the response: {e}")
+            log_debug(f"[ERROR] [OPEN AI] An error occurred while parsing the response: {e}")
         except Exception as e:
             # Handle other possible exceptions
-            log_debug(f"An unexpected error occurred: {e}")
+            log_debug(f"[ERROR] [OPEN AI] An unexpected error occurred: {e}")
 
             # Return None if the function cannot complete as expected due to any error
         return None

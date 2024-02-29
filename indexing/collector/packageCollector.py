@@ -1,5 +1,5 @@
-from indexing.BaseCollector import BaseCollector
-from indexing.packageInfo import PackageInfo
+from indexing.collector.BaseCollector import BaseCollector
+from indexing.info.packageInfo import PackageInfo
 from indexing.utility import log_debug
 
 
@@ -11,11 +11,7 @@ class PackageCollector(BaseCollector):
 
     def collect(self):
         self.package.collect_classes(prefix=self.package.package_name,
-                                              sourceCodePath=self.path)
+                                     sourceCodePath=self.path)
         if self.package.classes:
             log_debug(f"task result id")
             return self.package.class_info(self.package.to_dict())
-
-
-
-

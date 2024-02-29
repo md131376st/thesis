@@ -5,8 +5,8 @@ import requests
 from celery import group, chain
 
 from fileService import settings
-from indexing.baseInfo import BaseInfo
-from indexing.methodInfo import MethodInfo
+from indexing.info.baseInfo import BaseInfo
+from indexing.info.methodInfo import MethodInfo
 from indexing.prompt import Create_Tech_functional_class
 
 from indexing.tasks import collect_method_info, class_embedding_handler
@@ -54,10 +54,10 @@ class ClassInfo(BaseInfo):
         instance.extended_class = data["extended_class"]
         instance.fields = data["fields"]
         instance.methods = data["methods"]
+        instance.method_infos = [MethodInfo.from_dict(mi_data) for mi_data in data["method_infos"]]
         instance.method_names = data["method_names"]
         instance.description = data["description"]
         instance.packageName = data["packageName"]
-        instance.method_infos = [MethodInfo.from_dict(mi_data) for mi_data in data["method_infos"]]
         return instance
 
     def get_class_info(self) -> dict | None:
@@ -74,10 +74,10 @@ class ClassInfo(BaseInfo):
                 return data
             else:
                 log_debug(
-                    f"Failed to retrieve classinfo  for {self.qualified_class_name} with status code {response.status_code}")
+                    f"[ERROR] Failed to retrieve classinfo  for {self.qualified_class_name} with status code {response.status_code}")
                 return None
         except Exception as e:
-            log_debug(f"An error while classinfo   for {self.qualified_class_name}: {e}")
+            log_debug(f"[ERROR] An error while classinfo   for {self.qualified_class_name}: {e}")
             return None
 
     def get_meta_data(self):
@@ -107,7 +107,7 @@ class ClassInfo(BaseInfo):
         self.fields = fields
         self.methods = methods
         self.method_names = method_names
-        self.packageName =packageName
+        self.packageName = packageName
 
     def __repr__(self):
         return f"ClassInfo {self.qualified_class_name}')"
@@ -146,7 +146,7 @@ class ClassInfo(BaseInfo):
             method.set_description()
 
     def generate_class_embedding(self):
-        log_debug(f"generate embeddings: {self.class_name} ")
+        log_debug(f"[GENERATE_CLASS_EMBEDDING] start class name: {self.class_name} ")
         chunks = []
         metadata = []
         if self.method_infos:
@@ -159,12 +159,11 @@ class ClassInfo(BaseInfo):
                     )
                     metadata.append(method.get_meta_data())
             collection_metadata = self.get_meta_data()
-            log_debug(f" chunks for embeddings {chunks}")
             rag_store(chunks, metadata, self.qualified_class_name, collection_metadata)
-            log_debug(f"finish  embeddings: {self.class_name} ")
+            log_debug(f"[GENERATE_CLASS_EMBEDDING] finish  embeddings class name: {self.class_name} ")
 
         else:
-            log_debug(f"empty class function")
+            log_debug(f"[ERROR] empty class function")
 
     def get_class_methods_descriptions(self):
         descriptions = ""
@@ -202,7 +201,7 @@ class ClassInfo(BaseInfo):
                 "max_tokens": 1024,
                 "temperature": 0
             }
-            log_debug(f"OPEN AI CALL for: {self.class_name}")
+            log_debug(f"[OPEN AI CALL] for: {self.class_name}")
             response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
             response.raise_for_status()  # Raises an exception for 4XX/5XX responses
 
@@ -211,13 +210,13 @@ class ClassInfo(BaseInfo):
 
         except requests.exceptions.RequestException as e:
             # Handle network-related errors here
-            log_debug(f"An error occurred while making the request: {e}")
+            log_debug(f"[ERROR] [OPEN AI] An error occurred while making the request: {e}")
         except KeyError as e:
             # Handle errors related to accessing parts of the response
-            log_debug(f"An error occurred while parsing the response: {e}")
+            log_debug(f"[ERROR] [OPEN AI] An error occurred while parsing the response: {e}")
         except Exception as e:
             # Handle other possible exceptions
-            log_debug(f"An unexpected error occurred: {e}")
+            log_debug(f" [ERROR] [OPEN AI] An unexpected error occurred: {e}")
 
             # Return None if the function cannot complete as expected due to any error
         return None
