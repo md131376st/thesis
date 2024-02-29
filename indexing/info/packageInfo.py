@@ -11,23 +11,25 @@ from indexing.prompt import Create_Tech_functional_package
 
 
 class PackageInfo(BaseInfo):
-    def __init__(self, package_name):
+    def __init__(self, package_name, code_base_name):
         super().__init__()
         self.package_name = package_name
         self.classes = []  # List to store ClassInfo instances
         self.description = ""
+        self.code_base_name = code_base_name
 
     def to_dict(self):
         return {
             "package_name": self.package_name,
             "classes": [class_.to_dict() for class_ in self.classes],
             "description": self.description,
+            "code_base_name": self.code_base_name
         }
 
     @classmethod
     def from_dict(cls, data):
         from indexing.info.classInfo import ClassInfo
-        instance = cls(data["package_name"])
+        instance = cls(data["package_name"], data["code_base_name"])
         instance.classes = [ClassInfo.from_dict(ci_data) for ci_data in data["classes"]]
         instance.description = data["description"]
         return instance
@@ -69,6 +71,7 @@ class PackageInfo(BaseInfo):
         data = {
             "package_name": self.package_name,
             "classes": json.dumps([cls.class_name for cls in self.classes]),
+            "code_base_name": self.code_base_name
         }
         return filter_empty_values(data)
 

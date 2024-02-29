@@ -18,11 +18,11 @@ def collect_package_class_info(**kwargs):
     packageInfo.collect_classes(prefix=packageInfo.package_name, sourceCodePath=sourceCodePath)
     groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in packageInfo.classes]
     workflow = chain(
-        group(*groups) |
-        process_package_results.s(packageInfo_data=packageInfo_data) |
+        group(*groups)|
+        process_package_results.s(packageInfo_data=packageInfo_data)|
         update_package_info.s(packageInfo_data=packageInfo_data)
     )
-    return workflow.apply_async()
+    return workflow()
 
 
 @shared_task()

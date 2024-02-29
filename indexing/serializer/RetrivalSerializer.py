@@ -9,7 +9,7 @@ class RetrivalSerializer(serializers.Serializer):
     n_results = serializers.IntegerField(default=1)
     query_type = serializers.ChoiceField(
         choices=[(choice.value, choice.name) for choice in QueryTypes],
-        default=QueryTypes.CODEBASE.value,
+        default=QueryTypes.ALL.value,
         allow_null=True,
         allow_blank=True
     )

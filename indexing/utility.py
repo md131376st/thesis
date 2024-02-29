@@ -111,7 +111,7 @@ def rag_store(chunks,
 
 def rag_retrival(question,
                  n_results,
-                 collection_name) -> dict:
+                 collection_name, keyword=None):
     try:
         request_data = {
             "collection_name": collection_name,
@@ -119,16 +119,17 @@ def rag_retrival(question,
             "n_results": n_results,
             "embedding_type": settings.EMBEDDING_TYPE
         }
-        log_debug(request_data)
+        if keyword:
+            request_data["keyword"]: keyword
         response = requests.request("POST",
                                     f"{settings.RAG_URL}/retrieve",
                                     headers={"Content-Type": "application/json"},
                                     data=json.dumps(request_data))
         if response.status_code != 200:
             log_debug(f"[ERROR]: {response}")
-            return {"error": response.json()}
+            return None
         else:
             return response.json()
     except Exception as e:
         log_debug(f"[ERROR] error retrieving embedding for {collection_name}: {e} ")
-        return {"error": "e"}
+        return None

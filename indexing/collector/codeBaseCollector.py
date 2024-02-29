@@ -44,7 +44,7 @@ class CodeBaseCollector(BaseCollector):
         #     if len(package_info.classes) != 0:
         #         self.packages.append(package_info)
         for sub_package_name in data["subPackageNames"]:
-            self.packages.append(PackageInfo(sub_package_name))
+            self.packages.append(PackageInfo(sub_package_name, code_base_name=self.packagePrefix))
             # print(sub_package_name)
             # self.collect_package_info(sub_package_name)
 

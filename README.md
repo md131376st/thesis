@@ -1,8 +1,7 @@
 We have two main end points in our system:
 
 1. **TaskStete**
-    - get the state of the index 
-    - 
+    - get the state of the index task 
    
 2. **Store**
     - This end point is used to store embeddings in chroma db.

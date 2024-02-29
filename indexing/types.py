@@ -8,6 +8,7 @@ class IndexLevelTypes(Enum):
 
 
 class QueryTypes(Enum):
+    ALL = "all"
     CODEBASE = "codebase"
     PACKAGE = "package"
     CLASS = "class"
