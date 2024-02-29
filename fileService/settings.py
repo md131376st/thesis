@@ -174,12 +174,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440
-MEDIA_ROOT = 'files'
-MEDIA_URL = '/files/'
-PROCESSFIELS = 'preprocces'
 CHROMA_DB = os.environ.get('CHROMA_DB_PATH', os.getenv('CHROMA_DB_PATH'))
-FEATURE_EXTRACT = 'py_dump'
 
 INDEXROOT = "MyCodeBase"
 
@@ -188,5 +183,4 @@ RAG_URL = "http://127.0.0.1:8001"
 
 EMBEDDING_TYPE = "text-embedding-3-large"
 
-# set max side to 10 MB
-# DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
+
