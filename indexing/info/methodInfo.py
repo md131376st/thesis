@@ -135,7 +135,6 @@ class MethodInfo(BaseInfo):
                 self.bodyDependenciesWithPackage, list) else self.bodyDependenciesWithPackage,
             "imports": json.dumps(self.imports) if isinstance(self.imports, list) else self.imports,
             "stringRepresentation": self.stringRepresentation,
-            "description": self.description
         }
         return filter_empty_values(data)
 
