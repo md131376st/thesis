@@ -1,79 +1,82 @@
 We have two main end points in our system:
 
 1. **TaskStete**
-    - get the state of the index task 
-   
-2. **Store**
-    - This end point is used to store embeddings in chroma db.
-    - is_async is used for batching all the chunks and sending to chatgpt embedding api
-    - in chunks field each item of the list should be as following
-       ```
-         {
-           "text": "chunk information",
-           "id": "scsdv"
-         }
-         ```
-       ```
-         {
-           "text": "chunk information",
-         }
-         ```
-    - for each chunk in we should have a dictionary in the metadata field.
-    - if the length of the metadata doesn't match the metadata will be ignored.
-    - in case of empty metadata just put empty list
-    - collection_metadata can be an empty dictionary but it must be included. 
-    - embedding_type can be any of this values.
-        - text-embedding-3-small
-        - text-embedding-3-large
-        - text-embedding-ada-002
-
-Example:
-
-   ```
-   POST /store
-   {
-    "collection_name": "name of collection",
-    "is_async": true,
-    "collection_metadata":{},
-    "chunks": [
-        {
-    
-            "text": "lite "   
-        }
-
-    ],
-    "metadata": [{
-        "returnType":"ResponseEntity<List<MethodInfoData>>",
-        "methodName":"methodName",
-        "className":"ParserController",
-        "packageName": "com.reply.iriscube.codeparser.controller"
-        
-
-    }
-    ],
-    "embedding_type":"text-embedding-3-small"
-   
-   }
-   ```
+    - get the state of the index task
 
 2. **Retrieve**
-    - This end point is used to retrieve data form the rag system.
+    - This end point is used to retrive data from the index structure 
     - question and n_results are required fields.
-    - embedding_type can be any of this values.
-        - text-embedding-3-small
-        - text-embedding-3-large
-        - text-embedding-ada-002
-    - in case not specifying collection_name it will search the root collection MyCodeBase
+    - in case collection_name is not provided the search starts form all the repos .
+    - query_type is used to set the scope of the search and it supports 
+      - all ("It searches all the repos it was indexed it")
+      - codebase ("Search in a specific repo")
+      - package 
+      - class
+    
+   
+   Examples:
+   - cuple of repos
+      ```
+      POST /index/retrieve
+      {
+       "question": "your question",
+       "n_results": 4,
+       "query_type": "all"
+      }
+      ```
+   - Whole repo
+      ```
+      POST /index/retrieve
+      {
+       "question": "your question",
+       "n_results": 4,
+       "collection_name":"repo root used for indexing",
+       "query_type": "codebase"
+      
+      }
+      ```
+   - single package
+     ```
+       POST /index/retrieve
+       {
+        "question": "your question",
+        "n_results": 4,
+        "collection_name": "your.package.name",
+        "query_type": "package"
+       }
+      ```
+   - single class
+     ```
+      POST /index/retrieve
+      {
+       "question": "your question",
+       "n_results": 4,
+       "collection_name": "your.package.name.ClassName",
+       "query_type": "class"
+      }
+      ```
 
+2. **Store**
+    - This end point is used to index code bases in a hieratical structure.
+    - path field is the local path to the repo.
+    - indexType field gives the scope of are indexing and can have this values:
+      - codebase
+      - package
+      - class
+    - collectionName field has 3 kind of values base on the index type: 
+      - codebase: is the root package of the code base
+      - package: is the package name
+      - class: is the qualified_class_name
+    
+    
 Example:
 
    ```
-   POST/retrieve 
+   POST /index/store
    {
-    "question": "why there is mocks in the tests . what is a unit test?",
-    "n_results": 1,
-    "embedding_type":"text-embedding-3-small",
-    "collection_name": "collection name"
+    "path": "/Users/davarimona/Downloads/core-r-metaconto-v1",
+    "indexType": "codebase",
+    "collectionName": "com.intesasanpaolo.bear.sxdr0.metaconto"
    }
    ```
 
