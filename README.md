@@ -7,57 +7,68 @@ We have two main end points in our system:
    ```
 
 2. **Retrieve**
-    - This end point is used to retrive data from the index structure
-    - question and n_results are required fields.
-    - in case collection_name is not provided the search starts form all the repos .
-    - query_type is used to set the scope of the search and it supports
-        - all ("It searches all the repos it was indexed it")
-        - codebase ("Search in a specific repo")
-        - package
-        - class
+    - This endpoint is used to retrieve data from the index structure.
+    - `question` is a required field. `n_method_results` is also required to specify the number of method results to be
+      returned.
+    - `n_package_results` and `n_class_results` are optional fields to specify the number of package and class results
+      to be returned respectively.
+    - `collection_name` is an optional field. If not provided, the search starts from all the repositories.
+    - `query_type` is used to set the scope of the search. It supports the following types:
+        - all: Searches all the repositories it was indexed in.
+        - codebase: Searches in a specific repository.
+        - package: Searches in a specific package.
+        - class: Searches in a specific class.
 
    Examples:
 
-    - cuple of repos
+    - Couple of repositories
        ```
        POST /index/retrieve
        {
         "question": "your question",
-        "n_results": 4,
+        "n_method_results": 4,
+        "n_class_results": 3,
+        "n_package_results": 2,
         "query_type": "all"
        }
        ```
-        - Whole repo
-           ```
-           POST /index/retrieve
-           {
-            "question": "your question",
-            "n_results": 4,
-            "collection_name":"repo root used for indexing",
-            "query_type": "codebase"
-         
-           }
-           ```
-        - single package
-          ```
-            POST /index/retrieve
-            {
-             "question": "your question",
-             "n_results": 4,
-             "collection_name": "your.package.name",
-             "query_type": "package"
-            }
-           ```
-        - single class
-          ```
-           POST /index/retrieve
-           {
-            "question": "your question",
-            "n_results": 4,
-            "collection_name": "your.package.name.ClassName",
-            "query_type": "class"
-           }
-           ```
+    - Whole repository
+       ```
+       POST /index/retrieve
+       {
+        "question": "your question",
+        "n_method_results": 4,
+        "n_class_results": 3,
+        "n_package_results": 2,       
+        "collection_name":"repo root used for indexing",
+        "query_type": "codebase"
+       }
+       ```
+    - Single package
+      ```
+        POST /index/retrieve
+        {
+         "question": "your question",
+         "n_method_results": 4,
+         "n_class_results": 3,
+         "collection_name": "your.package.name",
+         "query_type": "package"
+        }
+       ```
+    - Single class
+      ```
+       POST /index/retrieve
+       {
+        "question": "your question",
+        "n_method_results": 4,
+        "collection_name": "your.package.name.ClassName",
+        "query_type": "class"
+       }
+       ```
+
+Please note that `n_package_results` and `n_class_results` should not be used with `query_type:class`
+and `query_type:package` respectively. If `query_type` is set to `class`, only `n_method_results` should be provided.
+Similarly, if `query_type` is set to `package`, only `n_method_results` and `n_class_results` should be provided.
 
 3. **Store**
     - This end point is used to index code bases in a hieratical structure.

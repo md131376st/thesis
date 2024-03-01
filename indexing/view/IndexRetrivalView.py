@@ -14,9 +14,16 @@ class IndexRetrivalView(CreateAPIView):
         if serializer.is_valid():
             question = serializer.validated_data["question"]
             collection_name = serializer.validated_data.get("collection_name")
-            n_results = serializer.validated_data["n_results"]
+            n_method_results = serializer.validated_data.get("n_method_results")
+            n_class_results = serializer.validated_data.get("n_class_results")
+            n_package_results = serializer.validated_data.get("n_package_results")
             query_type = serializer.validated_data.get("query_type")
-            result = TaskHandler.query_handler(question, collection_name, n_results, query_type)
+            result = TaskHandler.query_handler(question=question,
+                                               collection_name=collection_name,
+                                               n_method_results=n_method_results,
+                                               n_class_results=n_class_results,
+                                               n_package_results=n_package_results,
+                                               query_type=query_type)
             if not result:
                 return Response(
                     data={"error": "collection does not exist"},
