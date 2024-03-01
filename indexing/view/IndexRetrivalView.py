@@ -17,9 +17,9 @@ class IndexRetrivalView(CreateAPIView):
             n_results = serializer.validated_data["n_results"]
             query_type = serializer.validated_data.get("query_type")
             result = TaskHandler.query_handler(question, collection_name, n_results, query_type)
-            if "error" in result:
+            if not result:
                 return Response(
-                    data={"error": result},
+                    data={"error": "collection does not exist"},
                     status=status.HTTP_404_NOT_FOUND
 
                 )

@@ -61,7 +61,7 @@ We have two main end points in our system:
 
 3. **Store**
     - This end point is used to index code bases in a hieratical structure.
-    - the end point return the 202 status with an task id that can be used by the Task State to show it's state
+    - the end point return the 202 status with a task id that can be used by the Task State to show it's state
     - path field is the local path to the repo.
     - indexType field gives the scope of are indexing and can have this values:
         - codebase

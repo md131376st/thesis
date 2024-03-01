@@ -114,19 +114,19 @@ def rag_retrival(question,
                  collection_name, keyword=None):
     try:
         request_data = {
-            "collection_name": collection_name,
-            "question": question,
-            "n_results": n_results,
-            "embedding_type": settings.EMBEDDING_TYPE
+            'collection_name': collection_name,
+            'question': question,
+            'n_results': n_results,
+            'embedding_type': settings.EMBEDDING_TYPE
         }
         if keyword:
-            request_data["keyword"]: keyword
+            request_data['keyword'] = keyword
         response = requests.request("POST",
                                     f"{settings.RAG_URL}/retrieve",
                                     headers={"Content-Type": "application/json"},
                                     data=json.dumps(request_data))
         if response.status_code != 200:
-            log_debug(f"[ERROR]: {response}")
+            log_debug(f"[ERROR]: {response.json()}")
             return None
         else:
             return response.json()

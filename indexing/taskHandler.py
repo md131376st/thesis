@@ -47,10 +47,7 @@ class TaskHandler:
     @staticmethod
     def query_result_handler(result, question, n_results):
         if not result:
-            return {
-                "status": "error",
-                "message": "the collection doesn't exist"
-            }
+            return None
         elif "answer" in result:
             package_result = []
             for package in result["answer"]:
