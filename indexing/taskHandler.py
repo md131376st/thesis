@@ -13,7 +13,7 @@ class TaskHandler:
         package_result = rag_retrival(question=question,
                                       collection_name=package_name,
                                       n_results=n_results)
-        if "error" in package_result:
+        if not package_result:
             log_debug(f"[Package Retrival Error] {package_result}")
             return None
         elif "answer" in package_result:
