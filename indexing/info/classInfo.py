@@ -88,7 +88,6 @@ class ClassInfo(BaseInfo):
             "extended_class": self.extended_class,
             "fields": json.dumps(self.fields) if isinstance(self.fields, list) else self.fields,
             "methods": json.dumps(self.methods) if isinstance(self.methods, list) else self.methods,
-            "description": self.description,
             "packageName": self.packageName
         }
         return filter_empty_values(data)
