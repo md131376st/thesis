@@ -161,10 +161,16 @@ class ClassInfo(BaseInfo):
         for method in self.method_infos:
             method.set_description()
 
-    def generate_class_embedding(self):
+    def generate_class_embedding(self, package_metadata):
         log_debug(f"[GENERATE_CLASS_EMBEDDING] start class name: {self.class_name} ")
-        chunks = []
-        metadata = []
+        chunks = [
+            {
+                "text": self.description
+            }
+        ]
+        metadata = [
+
+        ]
         if self.method_infos:
             for method in self.method_infos:
                 if method.get_description():
