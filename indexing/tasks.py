@@ -142,7 +142,6 @@ def process_package_results(all_results, packageInfo_data):
         if description:
             classInfo.set_description(description)
             # generate class level embeddings
-            classInfo.generate_class_embedding()
         results.append(classInfo)
     package_info = PackageInfo.from_dict(packageInfo_data)
     package_info.classes = results
@@ -151,25 +150,3 @@ def process_package_results(all_results, packageInfo_data):
     results_ = [classInfo.to_dict() for classInfo in results]
     return results_
 
-
-@shared_task()
-def class_embedding_handler(all_result, classinfo):
-    from indexing.info.classInfo import ClassInfo
-    log_debug(f"[CLASS_EMMBEDING_HANDLER] number of chunks send : {len(all_result)}")
-    # log_debug(f"class_embedding_handler: {all_result}\n ***********\n")
-    classinfo_ = ClassInfo.from_dict(classinfo)
-    log_debug(f"[CLASS_EMMBEDING_HANDLER] class name: {classinfo_.class_name}")
-    method_info_list = []
-    for methods_list in all_result:
-        if not isinstance(methods_list, list):
-            methods_list = [methods_list]
-        # the methods can have overriding so the result can be a list
-        for method in methods_list:
-            if isinstance(method, dict):
-                method_info = MethodInfo.from_dict(method)
-                method_info_list.append(method_info)
-            else:
-                log_debug(f"[ERROR][CLASS_EMMBEDING_HANDLER] result reutuned form tasks are wronge: {method}")
-
-    classinfo_.method_infos = method_info_list
-    classinfo_.generate_class_embedding()

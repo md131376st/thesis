@@ -9,7 +9,7 @@ from indexing.info.methodInfo import MethodInfo
 from indexing.info.usageInfo import UsageInfo
 from indexing.prompt import class_description_system_prompt
 
-from indexing.tasks import collect_method_info, class_embedding_handler
+from indexing.tasks import collect_method_info
 from indexing.utility import log_debug, filter_empty_values, rag_store, open_ai_description_generator
 
 
