@@ -55,6 +55,7 @@ def collect_method_info(**kwargs):
     method_name = kwargs.get('method_name')
     qualified_class_name = kwargs.get('qualified_class_name')
     source_code_path = kwargs.get('source_code_path')
+    class_metadata = kwargs.get('class_metadata')
     try:
         # call to parser for get method info
         res = requests.request(
@@ -69,12 +70,12 @@ def collect_method_info(**kwargs):
             log_debug(f"[METHOD PREPROCESS] receive parser request:{method_name}")
             methods = json.loads(res.content)
             method_list = []
-            #if isinstance(methods, list):
-            for method in methods:
-                method_info = generate_method_info(method, method_name)
-                method_list.append(method_info)
-            #else:
-            #    generate_method_info(method_list, methods, method_name)
+            if isinstance(methods, list):
+                for method in methods:
+                    method_info = generate_method_info(method, method_name, class_metadata)
+                    method_list.append(method_info)
+            else:
+                generate_method_info(method_list, methods, method_name)
             return method_list
         else:
             log_debug(f"[ERROR] parserProblem: {method_name} : status code: {res.status_code} ")
@@ -84,12 +85,12 @@ def collect_method_info(**kwargs):
         return None
 
 
-def generate_method_info(method: dict, method_name: str) -> dict:
+def generate_method_info(method: dict, method_name: str, class_metadata: str) -> dict:
     method_info = MethodInfo.from_dict(method, False)
     log_debug(f"[METHOD PREPROCESS] generate method description {method_name}")
     method_info.set_description() # generating also the description with openai
     log_debug(f"[METHOD PREPROCESS] generated description is {method_info.description}")
-    method_info.generate_method_embedding()
+    method_info.generate_method_embedding(class_metadata)
     log_debug(f"[METHOD PREPROCESS] generated method embedding")
     return method_info.to_dict()
 
@@ -101,14 +102,18 @@ def collect_class_info(**kwargs):
     """
     classinfo_data = kwargs.get('classinfo')
     from indexing.info.classInfo import ClassInfo
-    classinfo = ClassInfo.from_dict(classinfo_data)
-    log_debug(f"[CLASS_INDEXING] start class name: {classinfo.class_name}")
-    result = [collect_method_info.s(method_name=method_name,
-                                    qualified_class_name=classinfo.qualified_class_name,
-                                    source_code_path=classinfo.sourceCodePath,
-                                    classinfo_data=classinfo_data)()
-              for method_name in classinfo.method_names]
-
+    class_info = ClassInfo.from_dict(classinfo_data)
+    class_metadata = class_info.get_meta_data()
+    log_debug(f"[CLASS_INDEXING] start class name: {class_info.class_name}")
+    result = [
+        collect_method_info.s(
+            method_name=method_name,
+            qualified_class_name=class_info.qualified_class_name,
+            source_code_path=class_info.sourceCodePath,
+            class_metadata=class_metadata
+        )()
+        for method_name in class_info.method_names
+    ]
     return {'results': result, 'classinfo_data': classinfo_data}
 
 

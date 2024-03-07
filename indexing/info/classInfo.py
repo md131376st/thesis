@@ -150,7 +150,8 @@ class ClassInfo(BaseInfo):
             collect_method_info.s(
                 method_name=method_name,
                 qualified_class_name=self.qualified_class_name,
-                source_code_path=self.sourceCodePath
+                source_code_path=self.sourceCodePath,
+                class_metadata=self.get_meta_data()
             ) for method_name in self.method_names
         )
         results = workflow.apply_async()

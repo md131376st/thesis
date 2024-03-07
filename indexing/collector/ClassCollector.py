@@ -13,7 +13,6 @@ class ClassCollector(BaseCollector):
 
     def collect(self):
         detail = self.class_info.get_class_info()
-        log_debug(f"[CLASSCOLLECTOR] parser returnValue: {detail}")
         if detail is not None:
             self.class_info.update_class_details(detail)
             return self.class_info.get_method_info()
