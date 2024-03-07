@@ -169,15 +169,18 @@ class ClassInfo(BaseInfo):
                 "text": self.description
             }
         ]
-        collection_metadata = [
-            {
-                "code_base_name": self.codebase_name,
-                "packageName": self.packageName
-            }
-        ]
+        collection_metadata = {
+            "code_base_name": self.codebase_name,
+            "packageName": self.packageName
+        }
 
-        restult = rag_store(chunks, self.get_meta_data(), self.qualified_class_name, collection_metadata)
-        if "error" in restult:
+        result = rag_store(
+            chunks=chunks,
+            metadata=[self.get_meta_data()],
+            collection_name=self.packageName,
+            collection_metadata=collection_metadata
+        )
+        if "error" in result:
             log_debug(f"[error] [GENERATE_CLASS_EMBEDDING]  ")
         log_debug(f"[GENERATE_CLASS_EMBEDDING] finish  embeddings class name: {self.class_name} ")
 
