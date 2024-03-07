@@ -14,7 +14,7 @@ from indexing.utility import log_debug, filter_empty_values, rag_store, open_ai_
 
 
 class ClassInfo(BaseInfo):
-    def __init__(self, class_name, path,codebase_name):
+    def __init__(self, class_name, path, codebase_name):
         super().__init__()
         self.sourceCodePath = path
         self.class_name = class_name
@@ -112,7 +112,8 @@ class ClassInfo(BaseInfo):
         else:
             self.qualified_class_name = f"{package_name}.{self.class_name}"
 
-    def fill_class_details(self, code, implemented_class, extended_class, fields, methods, method_names, package_name, usages, annotations):
+    def fill_class_details(self, code, implemented_class, extended_class, fields, methods, method_names, package_name,
+                           usages, annotations):
         self.code = code
         self.implemented_class = implemented_class
         self.extended_class = extended_class
@@ -161,31 +162,24 @@ class ClassInfo(BaseInfo):
         for method in self.method_infos:
             method.set_description()
 
-    def generate_class_embedding(self, package_metadata):
+    def generate_class_embedding(self):
         log_debug(f"[GENERATE_CLASS_EMBEDDING] start class name: {self.class_name} ")
         chunks = [
             {
                 "text": self.description
             }
         ]
-        metadata = [
-
+        collection_metadata = [
+            {
+                "code_base_name": self.codebase_name,
+                "packageName": self.packageName
+            }
         ]
-        if self.method_infos:
-            for method in self.method_infos:
-                if method.get_description():
-                    chunks.append(
-                        {
-                            "text": method.get_description()
-                        }
-                    )
-                    metadata.append(method.get_meta_data())
-            collection_metadata = self.get_meta_data()
-            rag_store(chunks, metadata, self.qualified_class_name, collection_metadata)
-            log_debug(f"[GENERATE_CLASS_EMBEDDING] finish  embeddings class name: {self.class_name} ")
 
-        else:
-            log_debug(f"[ERROR] empty class function")
+        restult = rag_store(chunks, self.get_meta_data(), self.qualified_class_name, collection_metadata)
+        if "error" in restult:
+            log_debug(f"[error] [GENERATE_CLASS_EMBEDDING]  ")
+        log_debug(f"[GENERATE_CLASS_EMBEDDING] finish  embeddings class name: {self.class_name} ")
 
     def get_class_methods_descriptions(self):
         descriptions = ""

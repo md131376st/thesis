@@ -35,7 +35,7 @@ class PackageInfo(BaseInfo):
         from indexing.info.classInfo import ClassInfo
         log_debug(f"[COLLECT_CLASSES] class prefix: {prefix}")
         data = packet_info_call(prefix=prefix, sourceCodePath=sourceCodePath)
-        if data["classNames"] is not None:
+        if "classNames" in data and data["classNames"] is not None:
             for class_name in data["classNames"]:
                 class_info = ClassInfo(class_name, sourceCodePath, self.code_base_name)
                 class_info.set_qualified_class_name(data["packageName"])

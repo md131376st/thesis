@@ -141,12 +141,14 @@ def process_package_results(all_results, packageInfo_data):
         description = classInfo.generate_description()
         if description:
             classInfo.set_description(description)
+            log_debug(f"[PROCESS_PACKAGE_RESULT]:generate Class Embedding {classInfo.class_name}")
+            classInfo.generate_class_embedding()
             # generate class level embeddings
         results.append(classInfo)
     package_info = PackageInfo.from_dict(packageInfo_data)
     package_info.classes = results
     log_debug(f"[PROCESS_PACKAGE_RESULT] generate package embedding: {package_info.package_name} ")
-    package_info.generate_package_embeddings()
+    # package_info.generate_package_embeddings()
     results_ = [classInfo.to_dict() for classInfo in results]
     return results_
 
