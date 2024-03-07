@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from filemanger.Types import IndexLevelTypes
+from indexing.types import IndexLevelTypes
 
 
 class IndexCreateSerializer(serializers.Serializer):
@@ -13,3 +13,4 @@ class IndexCreateSerializer(serializers.Serializer):
     )
     # this is used for in case of code base the root package in other case it is the package path or class path
     collectionName = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    codebaseName = serializers.CharField(required=True)

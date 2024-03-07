@@ -62,10 +62,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "corsheaders",
-    "filemanger.apps.FilemangerConfig",
     'celery',
     'django_celery_results',
-    'simplePipline.apps.SimplePiplineConfig',
     'indexing.apps.IndexConfig',
 
 ]
@@ -147,7 +145,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'my_app': {  # Use your app's name here
+        'AI_CODEBASE_EXPERT': {  # Use your app's name here
             'handlers': ['app_file'],
             'level': 'DEBUG',
             'propagate': False,  # Prevents log messages from being propagated to the root logger
@@ -176,16 +174,13 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440
-MEDIA_ROOT = 'files'
-MEDIA_URL = '/files/'
-PROCESSFIELS = 'preprocces'
 CHROMA_DB = os.environ.get('CHROMA_DB_PATH', os.getenv('CHROMA_DB_PATH'))
-FEATURE_EXTRACT = 'py_dump'
 
 INDEXROOT = "MyCodeBase"
 
 PARSER_URL = "http://127.0.0.1:8080/parser/"
+RAG_URL = "http://127.0.0.1:8001"
 
-# set max side to 10 MB
-# DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
+EMBEDDING_TYPE = "text-embedding-3-large"
+
+
