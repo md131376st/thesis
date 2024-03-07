@@ -146,15 +146,12 @@ class ClassInfo(BaseInfo):
         )
 
     def get_method_info(self):
-
-        workflow = chain(
-            group(
-                collect_method_info.s(
-                    method_name=method_name,
-                    qualified_class_name=self.qualified_class_name,
-                    source_code_path=self.sourceCodePath
-                ) for method_name in self.method_names),
-            class_embedding_handler.s(classinfo=self.to_dict())
+        workflow = group(
+            collect_method_info.s(
+                method_name=method_name,
+                qualified_class_name=self.qualified_class_name,
+                source_code_path=self.sourceCodePath
+            ) for method_name in self.method_names
         )
         results = workflow.apply_async()
         return results.id

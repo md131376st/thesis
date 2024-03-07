@@ -3,7 +3,7 @@ import re
 
 from indexing.info.baseInfo import BaseInfo
 from indexing.prompt import method_description_system_prompt
-from indexing.utility import filter_empty_values, open_ai_description_generator, log_debug
+from indexing.utility import filter_empty_values, open_ai_description_generator, log_debug, rag_store
 
 
 def add_string_to_file(file_path, string_to_add):
@@ -169,3 +169,22 @@ class MethodInfo(BaseInfo):
                 log_debug(f"[MethodInfo_generate_description] not valid json: {description}")
             i += 1
         return None
+    
+    def generate_method_embedding(self, class_metadata):
+        log_debug(f"[GENERATE_METHOD_EMBEDDING] start embeddings method name: {self.methodName} class name: {self.className}")
+        chunks = []
+        metadata = []
+        description = self.description()
+        if description:
+            chunks.append({
+                "text": description
+            })
+            metadata.append(self.get_meta_data())
+            qualified_class_name = self.packageName + '.' + self.className
+            result = rag_store(chunks, metadata, qualified_class_name, class_metadata)
+            if 'error' in  result:
+                log_debug(f"[ERROR][GENERATE_METHOD_EMBEDDING] rag store failed method {self.methodName} class {self.className} error: {result['error']}")
+            else:
+                log_debug(f"[GENERATE_METHOD_EMBEDDING] finish embeddings method name: {self.methodName} class name: {self.className}")
+        else:
+            log_debug(f"[ERROR][GENERATE_METHOD_EMBEDDING] empty description for method {self.methodName} class {self.className}")

@@ -11,6 +11,9 @@ from indexing.utility import log_debug
 
 @shared_task()
 def collect_package_class_info(**kwargs):
+    """
+    Starter for a package to be collected.
+    """
     packageInfo_data = kwargs.get('packageInfo')
     sourceCodePath = kwargs.get('sourceCodePath')
     packageInfo = PackageInfo.from_dict(packageInfo_data)
@@ -45,28 +48,33 @@ def update_package_info(results, packageInfo_data):
 
 @shared_task()
 def collect_method_info(**kwargs):
+    """
+    Starter for sending the task to collect information about a method.
+    """
     # Assumendo che `method_name` e altre variabili necessarie siano passate correttamente.
     method_name = kwargs.get('method_name')
     qualified_class_name = kwargs.get('qualified_class_name')
     source_code_path = kwargs.get('source_code_path')
     try:
-        res = requests.request("GET",
-                               f"{settings.PARSER_URL}methodsInfo/{qualified_class_name}/{method_name}",
-                               headers={
-                                   "sourceCodePath": source_code_path
-                               })
+        # call to parser for get method info
+        res = requests.request(
+            "GET",
+            f"{settings.PARSER_URL}methodsInfo/{qualified_class_name}/{method_name}",
+            headers={
+                "sourceCodePath": source_code_path
+            }
+        )
         log_debug(f"[METHOD PREPROCESS] send parser request: {method_name}")
-
         if res.status_code == 200:
             log_debug(f"[METHOD PREPROCESS] receive parser request:{method_name}")
             methods = json.loads(res.content)
             method_list = []
-            if isinstance(methods, list):
-                log_debug(f"PIPPPOOOOO: {method_name}")
-                for method in methods:
-                    generate_method_info(method_list, method, method_name)
-            else:
-                generate_method_info(method_list, methods, method_name)
+            #if isinstance(methods, list):
+            for method in methods:
+                method_info = generate_method_info(method, method_name)
+                method_list.append(method_info)
+            #else:
+            #    generate_method_info(method_list, methods, method_name)
             return method_list
         else:
             log_debug(f"[ERROR] parserProblem: {method_name} : status code: {res.status_code} ")
@@ -76,16 +84,21 @@ def collect_method_info(**kwargs):
         return None
 
 
-def generate_method_info(method_list, method, method_name):
+def generate_method_info(method: dict, method_name: str) -> dict:
     method_info = MethodInfo.from_dict(method, False)
     log_debug(f"[METHOD PREPROCESS] generate method description {method_name}")
-    method_info.set_description()
+    method_info.set_description() # generating also the description with openai
     log_debug(f"[METHOD PREPROCESS] generated description is {method_info.description}")
-    method_list.append(method_info.to_dict())
+    method_info.generate_method_embedding()
+    log_debug(f"[METHOD PREPROCESS] generated method embedding")
+    return method_info.to_dict()
 
 
 @shared_task()
 def collect_class_info(**kwargs):
+    """
+    Starter for collecting the info about a single class in a package.
+    """
     classinfo_data = kwargs.get('classinfo')
     from indexing.info.classInfo import ClassInfo
     classinfo = ClassInfo.from_dict(classinfo_data)
