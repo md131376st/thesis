@@ -174,10 +174,9 @@ class MethodInfo(BaseInfo):
         log_debug(f"[GENERATE_METHOD_EMBEDDING] start embeddings method name: {self.methodName} class name: {self.className}")
         chunks = []
         metadata = []
-        description = self.description()
-        if description:
+        if self.description:
             chunks.append({
-                "text": description
+                "text": self.description
             })
             metadata.append(self.get_meta_data())
             qualified_class_name = self.packageName + '.' + self.className

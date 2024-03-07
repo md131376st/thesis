@@ -57,7 +57,7 @@ def collect_method_info(**kwargs):
     source_code_path = kwargs.get('source_code_path')
     class_metadata = kwargs.get('class_metadata')
     try:
-        # call to parser for get method info
+        #  call to parser for get method info
         res = requests.request(
             "GET",
             f"{settings.PARSER_URL}methodsInfo/{qualified_class_name}/{method_name}",
@@ -75,7 +75,7 @@ def collect_method_info(**kwargs):
                     method_info = generate_method_info(method, method_name, class_metadata)
                     method_list.append(method_info)
             else:
-                generate_method_info(method_list, methods, method_name)
+                generate_method_info(methods, method_name, class_metadata)
             return method_list
         else:
             log_debug(f"[ERROR] parserProblem: {method_name} : status code: {res.status_code} ")
@@ -88,7 +88,7 @@ def collect_method_info(**kwargs):
 def generate_method_info(method: dict, method_name: str, class_metadata: str) -> dict:
     method_info = MethodInfo.from_dict(method, False)
     log_debug(f"[METHOD PREPROCESS] generate method description {method_name}")
-    method_info.set_description() # generating also the description with openai
+    method_info.set_description()  # generating also the description with openai
     log_debug(f"[METHOD PREPROCESS] generated description is {method_info.description}")
     method_info.generate_method_embedding(class_metadata)
     log_debug(f"[METHOD PREPROCESS] generated method embedding")
