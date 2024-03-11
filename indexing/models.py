@@ -31,6 +31,11 @@ class MethodRecord(Document):
     metadata = fields.DictField()
     technical_questions = fields.ListField()
     functional_questions = fields.ListField()
+    meta = {
+        'indexes': [
+            'codebase_name'
+        ]
+    }
 
 
 class ClassRecord(Document):
@@ -43,6 +48,11 @@ class ClassRecord(Document):
     metadata = fields.DictField()
     technical_questions = fields.ListField()
     functional_questions = fields.ListField()
+    meta = {
+        'indexes': [
+            'codebase_name'
+        ]
+    }
 
 
 class PackageRecord(Document):
@@ -54,3 +64,8 @@ class PackageRecord(Document):
     metadata = fields.DictField()
     technical_questions = fields.ListField()
     functional_questions = fields.ListField()
+    meta = {
+        'indexes': [
+            'codebase_name'
+        ]
+    }
