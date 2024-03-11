@@ -253,8 +253,10 @@ USAGES:\n
             log_debug(f"[STORE_IN_DB_Class] start storing {self.class_name}")
             record = ClassRecord(
                 qualified_class_name=self.qualified_class_name,
-                description=self.description,
                 package_name=self.packageName,
+                codebase_name=self.codebase_name,
+
+                description=self.description,
                 technical_questions=self.technical_questions,
                 functional_questions=self.functional_questions,
                 metadata=self.get_meta_data()

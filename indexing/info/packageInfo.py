@@ -141,6 +141,8 @@ class PackageInfo(BaseInfo):
             log_debug(f"[STORE_IN_DB_Package] start storing {self.package_name}")
             record = PackageRecord(
                 package_name=self.package_name,
+                codebase_name=self.code_base_name,
+
                 description=self.description,
                 technical_questions=self.technical_questions,
                 functional_questions=self.functional_questions,
