@@ -57,7 +57,6 @@ def open_ai_description_generator(system_prompt, content, sender):
                 {"role": "system", "content": f"{system_prompt}"},
                 {"role": "user", "content": f"{content}"},
             ],
-            "max_tokens": 1024,
             "temperature": 0
         }
         log_debug(f"[OPEN AI CALL] for: {sender}")

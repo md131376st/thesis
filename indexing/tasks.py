@@ -90,8 +90,10 @@ def generate_method_info(method: dict, method_name: str, class_metadata: str) ->
     log_debug(f"[METHOD PREPROCESS] generate method description {method_name}")
     method_info.set_description()  # generating also the description with openai
     log_debug(f"[METHOD PREPROCESS] generated description is {method_info.description}")
-    method_info.generate_method_embedding(class_metadata)
-    log_debug(f"[METHOD PREPROCESS] generated method embedding")
+    method_info.store_mongodb()
+    log_debug(f"[METHOD PREPROCESS]stored in mongodb {method_name}")
+    # method_info.generate_method_embedding(class_metadata)
+    # log_debug(f"[METHOD PREPROCESS] generated method embedding")
     return method_info.to_dict()
 
 
@@ -143,6 +145,7 @@ def process_package_results(all_results, packageInfo_data):
             classInfo.set_description(description)
             log_debug(f"[PROCESS_PACKAGE_RESULT]:generate Class Embedding {classInfo.class_name}")
             # generate class level embeddings
+
             classInfo.generate_class_embedding()
 
         results.append(classInfo)
@@ -151,4 +154,3 @@ def process_package_results(all_results, packageInfo_data):
     log_debug(f"[PROCESS_PACKAGE_RESULT] generate package embedding: {package_info.package_name} ")
     results_ = [classInfo.to_dict() for classInfo in results]
     return results_
-

@@ -15,7 +15,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 import environ
-
+import mongoengine
 #
 env = environ.Env()
 environ.Env.read_env()
@@ -101,13 +101,21 @@ WSGI_APPLICATION = "fileService.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+MONGODB_HOST = os.environ.get('MONGODB_HOST', os.getenv('MONGODB_HOST'))
+mongoengine.connect(
+    db='RagCodeExpert',
+    host=MONGODB_HOST,
+    port=27017
+)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'djongo',
+#         'NAME': 'RagCodeExpert',
+#         'ENFORCE_SCHEMA': False,
+#
+#     }
+# }
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    },
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

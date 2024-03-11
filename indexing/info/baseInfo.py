@@ -12,7 +12,7 @@ class BaseInfo(ABC):
     def from_dict(cls, data):
         pass
 
-    def get_meta_data(self):
+    def get_meta_data(self) -> dict:
         pass
 
     def generate_description(self):

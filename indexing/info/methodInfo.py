@@ -1,7 +1,11 @@
 import json
 import re
 
+
+from mongoengine.errors import ValidationError, NotUniqueError, OperationError
+
 from indexing.info.baseInfo import BaseInfo
+from indexing.models import MethodRecord
 from indexing.prompt import method_description_system_prompt
 from indexing.utility import filter_empty_values, open_ai_description_generator, log_debug, rag_store
 
@@ -16,10 +20,11 @@ def clean_description_json_string(description: str) -> str:
         return description
     begin_index = description.index("```json")
     end_index = description.rindex("```")
-    return description[begin_index+7:end_index]
+    return description[begin_index + 7:end_index]
 
 
 class MethodInfo(BaseInfo):
+
     def __init__(self, returnType, methodName, className, packageName, body, modifier, signature, parametersNames,
                  parametersTypes, annotations, exceptions, signatureDependencies, bodyDependencies,
                  signatureDependenciesWithPackage, bodyDependenciesWithPackage, imports, stringRepresentation,
@@ -45,6 +50,8 @@ class MethodInfo(BaseInfo):
         self.stringRepresentation = stringRepresentation
         self.dependencies_stubs = dependencies_stubs
         self.description = description
+        self.technical_questions = []
+        self.functional_questions = []
 
     def to_dict(self):
         return {
@@ -130,7 +137,11 @@ class MethodInfo(BaseInfo):
         return filter_empty_values(data)
 
     def set_description(self):
-        self.description = self.generate_description()
+        gpt_json = self.generate_description()
+        self.description = gpt_json.get("description")
+        self.technical_questions = gpt_json.get("technical_questions")
+        self.functional_questions = gpt_json.get("functional_questions")
+
         log_debug(f"[MethodInfo_set_description] class prefix: {self.methodName}")
         if self.description is None:
             log_debug(f"[MethodInfo_set_description] description exists class prefix: {self.methodName}")
@@ -142,7 +153,7 @@ class MethodInfo(BaseInfo):
     def get_methodName(self):
         return self.methodName
 
-    def generate_description(self) -> str | None:
+    def generate_description(self) -> dict | None:
         user_prompt = f"""
         METHOD BODY:
         {self.body}
@@ -164,14 +175,46 @@ class MethodInfo(BaseInfo):
                 description = clean_description_json_string(description)
                 log_debug(f"CLEANED DESCRIPTION {description}")
                 description_json = json.loads(description)
-                return description_json['description']
+                return description_json
             except Exception:
                 log_debug(f"[MethodInfo_generate_description] not valid json: {description}")
             i += 1
         return None
-    
+
+    def store_mongodb(self):
+        try:
+            log_debug(f"[STORE_IN_DB_Method] start storing {self.methodName}")
+            record = MethodRecord(
+                name=self.methodName,
+                description=self.description,
+                qualified_class_name=f"{self.packageName}.{self.className}",
+                package_name=self.packageName,
+                technical_questions=self.technical_questions,
+                functional_questions=self.functional_questions,
+                metadata=self.get_meta_data()
+            )
+            record.save()
+            log_debug(f"[STORE_IN_DB_Method] finish storing {self.methodName}")
+        except ValidationError as e:
+            # Handle validation errors, e.g., missing fields or incorrect data types
+            log_debug(f"[ERROR][STORE_IN_DB_Method]Validation error while saving record: {e}")
+            # Optionally, log the error or take other actions like sending a notification
+        except NotUniqueError as e:
+            # Handle errors related to unique constraints being violated
+            log_debug(f"[ERROR][STORE_IN_DB_Method]Unique constraint violated while saving record: {e}")
+            # Optionally, log the error or take other actions
+        except OperationError as e:
+            # Handle general operation errors, e.g., issues with the connection to MongoDB
+            log_debug(f"[ERROR][STORE_IN_DB_Method]Operation error while saving record: {e}")
+            # Optionally, log the error or take other actions
+        except Exception as e:
+            # Handle any other exceptions that were not caught by the specific handlers above
+            log_debug(f"[ERROR][STORE_IN_DB_Method]An unexpected error occurred while saving record: {e}")
+            # Optionally, log the error or take other actions
+
     def generate_method_embedding(self, class_metadata):
-        log_debug(f"[GENERATE_METHOD_EMBEDDING] start embeddings method name: {self.methodName} class name: {self.className}")
+        log_debug(
+            f"[GENERATE_METHOD_EMBEDDING] start embeddings method name: {self.methodName} class name: {self.className}")
         chunks = []
         metadata = []
         if self.description:
@@ -181,9 +224,12 @@ class MethodInfo(BaseInfo):
             metadata.append(self.get_meta_data())
             qualified_class_name = self.packageName + '.' + self.className
             result = rag_store(chunks, metadata, qualified_class_name, class_metadata)
-            if 'error' in  result:
-                log_debug(f"[ERROR][GENERATE_METHOD_EMBEDDING] rag store failed method {self.methodName} class {self.className} error: {result['error']}")
+            if 'error' in result:
+                log_debug(
+                    f"[ERROR][GENERATE_METHOD_EMBEDDING] rag store failed method {self.methodName} class {self.className} error: {result['error']}")
             else:
-                log_debug(f"[GENERATE_METHOD_EMBEDDING] finish embeddings method name: {self.methodName} class name: {self.className}")
+                log_debug(
+                    f"[GENERATE_METHOD_EMBEDDING] finish embeddings method name: {self.methodName} class name: {self.className}")
         else:
-            log_debug(f"[ERROR][GENERATE_METHOD_EMBEDDING] empty description for method {self.methodName} class {self.className}")
+            log_debug(
+                f"[ERROR][GENERATE_METHOD_EMBEDDING] empty description for method {self.methodName} class {self.className}")

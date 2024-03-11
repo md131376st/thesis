@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
+from mongoengine import Document, fields
 
 class Record(models.Model):
     class Type(models.IntegerChoices):
@@ -16,3 +16,30 @@ class Record(models.Model):
     chromaDb_id = models.UUIDField()
     name = models.CharField(max_length=255)
     pass
+
+
+class MethodRecord(Document):
+    name = fields.StringField()
+    description = fields.StringField()
+    qualified_class_name = fields.StringField()
+    package_name = fields.StringField()
+    metadata = fields.DictField()
+    technical_questions = fields.ListField()
+    functional_questions = fields.ListField()
+
+
+class ClassRecord(models.Model):
+    name = models.TextField()
+    package_name = models.TextField()
+    description = models.TextField()
+    metadata = models.JSONField()
+    technical_questions = models.JSONField()
+    functional_questions = models.JSONField()
+
+
+class PackageRecord(models.Model):
+    name = models.TextField()
+    description = models.TextField()
+    metadata = models.JSONField()
+    technical_questions = models.JSONField()
+    functional_questions = models.JSONField()
