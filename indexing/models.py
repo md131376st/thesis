@@ -28,18 +28,18 @@ class MethodRecord(Document):
     functional_questions = fields.ListField()
 
 
-class ClassRecord(models.Model):
-    name = models.TextField()
-    package_name = models.TextField()
-    description = models.TextField()
-    metadata = models.JSONField()
-    technical_questions = models.JSONField()
-    functional_questions = models.JSONField()
+class ClassRecord(Document):
+    name = fields.StringField()
+    package_name = fields.StringField()
+    description = fields.StringField()
+    metadata = fields.DictField()
+    technical_questions = fields.ListField()
+    functional_questions = fields.ListField()
 
 
-class PackageRecord(models.Model):
-    name = models.TextField()
-    description = models.TextField()
-    metadata = models.JSONField()
-    technical_questions = models.JSONField()
-    functional_questions = models.JSONField()
+class PackageRecord(Document):
+    name = fields.StringField()
+    description = fields.StringField()
+    metadata = fields.DictField()
+    technical_questions = fields.ListField()
+    functional_questions = fields.ListField()
