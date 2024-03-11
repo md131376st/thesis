@@ -37,12 +37,12 @@ def update_package_info(results, packageInfo_data):
     log_debug(f"\n [UPDATE_PACKAGE_INFO] set package class list :\n\n")
     packageInfo.classes = [ClassInfo.from_dict(groupResult) for groupResult in results]
     log_debug(f"\n [UPDATE_PACKAGE_INFO] generate package class list :\n \n")
-    description = packageInfo.generate_description()
-    if description:
-        packageInfo.set_description(description)
-        log_debug(f"\n[UPDATE_PACKAGE_INFO] generate package embedding in base class {packageInfo.package_name}  :\n\n")
-        packageInfo.generate_codebase_embeddings()
-        log_debug(f"\n [UPDATE_PACKAGE_INFO] finish package embedding in base class {packageInfo.package_name} :\n\n")
+    packageInfo.set_description("PackageInfo_set_description", packageInfo.package_name)
+    log_debug(f"\n [UPDATE_PACKAGE_INFO] save package descriptions in mongodb :\n \n")
+    packageInfo.store_in_mongo_db()
+    # log_debug(f"\n[UPDATE_PACKAGE_INFO] generate package embedding in base class {packageInfo.package_name}  :\n\n")
+    # packageInfo.generate_codebase_embeddings()
+    # log_debug(f"\n [UPDATE_PACKAGE_INFO] finish package embedding in base class {packageInfo.package_name} :\n\n")
     return packageInfo.to_dict()
 
 
@@ -88,7 +88,8 @@ def collect_method_info(**kwargs):
 def generate_method_info(method: dict, method_name: str, class_metadata: str) -> dict:
     method_info = MethodInfo.from_dict(method, False)
     log_debug(f"[METHOD PREPROCESS] generate method description {method_name}")
-    method_info.set_description()  # generating also the description with openai
+    method_info.set_description("MethodInfo_set_description",
+                                method_name)  # generating also the description with openai
     log_debug(f"[METHOD PREPROCESS] generated description is {method_info.description}")
     method_info.store_in_mongo_db()
     log_debug(f"[METHOD PREPROCESS]stored in mongodb {method_name}")
@@ -140,7 +141,7 @@ def process_package_results(all_results, packageInfo_data):
         # generate class Descriptions
         classInfo.method_infos = method_info_list
         log_debug(f"[PROCESS_PACKAGE_RESULT]:generate Class description {classInfo.class_name}")
-        classInfo.set_description()
+        classInfo.set_description("classInfo_set_description", classInfo.qualified_class_name)
         log_debug(f"[PROCESS_PACKAGE_RESULT]:saving class description  {classInfo.class_name}")
         # save descriptions in mongodb
         classInfo.store_in_mongo_db()

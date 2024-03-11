@@ -1,10 +1,13 @@
 import json
 from celery import chain, group
 
-from indexing.utility import packet_info_call, log_debug, filter_empty_values, open_ai_description_generator
+from indexing.models import PackageRecord
+from indexing.utility import packet_info_call, log_debug, filter_empty_values, open_ai_description_generator, \
+    clean_description_json_string
 
 from indexing.info.baseInfo import BaseInfo
 from indexing.prompt import package_description_system_prompt
+from mongoengine import ValidationError, NotUniqueError, OperationError
 
 
 class PackageInfo(BaseInfo):
@@ -14,6 +17,8 @@ class PackageInfo(BaseInfo):
         self.classes = []  # List to store ClassInfo instances
         self.description = ""
         self.code_base_name = code_base_name
+        self.technical_questions = []
+        self.functional_questions = []
 
     def to_dict(self):
         return {
@@ -57,9 +62,6 @@ class PackageInfo(BaseInfo):
         result = workflow.apply_async()
 
         return result.id
-
-    def set_description(self, description):
-        self.description = description
 
     def get_description(self):
         return self.description
@@ -114,12 +116,54 @@ class PackageInfo(BaseInfo):
             description += f"{classinfo.get_description()} \n"
         return description
 
-    def generate_description(self):
-        return open_ai_description_generator(
-            system_prompt=package_description_system_prompt,
-            content=self.description_package_prompt_data(),
-            sender=self.package_name
-        )
+    def generate_description(self) -> dict | None:
+        max_retry = 3
+        i = 0
+        while i < max_retry:
+            description = open_ai_description_generator(
+                system_prompt=package_description_system_prompt,
+                content=self.description_package_prompt_data(),
+                sender=self.package_name
+            )
+            log_debug(f"[PackageInfo_generate_description] description: {type(description)}")
+            try:
+                description = clean_description_json_string(description)
+                log_debug(f"[PackageInfo_generate_description] CLEANED DESCRIPTION {description}")
+                description_json = json.loads(description)
+                return description_json
+            except json.JSONDecodeError:
+                log_debug(f"[PackageInfo_generate_description] not valid json: {description}")
+            i += 1
+        return None
+
+    def store_in_mongo_db(self):
+        try:
+            log_debug(f"[STORE_IN_DB_Package] start storing {self.package_name}")
+            record = PackageRecord(
+                name=self.package_name,
+                description=self.description,
+                technical_questions=self.technical_questions,
+                functional_questions=self.functional_questions,
+                metadata=self.get_meta_data()
+            )
+            record.save()
+            log_debug(f"[STORE_IN_DB_Package] finish storing {self.package_name}")
+        except ValidationError as e:
+            # Handle validation errors, e.g., missing fields or incorrect data types
+            log_debug(f"[ERROR][STORE_IN_DB_Package]Validation error while saving record: {e}")
+            # Optionally, log the error or take other actions like sending a notification
+        except NotUniqueError as e:
+            # Handle errors related to unique constraints being violated
+            log_debug(f"[ERROR][STORE_IN_DB_Package]Unique constraint violated while saving record: {e}")
+            # Optionally, log the error or take other actions
+        except OperationError as e:
+            # Handle general operation errors, e.g., issues with the connection to MongoDB
+            log_debug(f"[ERROR][STORE_IN_DB_Package]Operation error while saving record: {e}")
+            # Optionally, log the error or take other actions
+        except Exception as e:
+            # Handle any other exceptions that were not caught by the specific handlers above
+            log_debug(f"[ERROR][STORE_IN_DB_Package]An unexpected error occurred while saving record: {e}")
+            # Optionally, log the error or take other actions
 
     def __repr__(self):
         return f"{self.package_name}', classes={self.classes})"

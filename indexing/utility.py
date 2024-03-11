@@ -142,3 +142,8 @@ def clean_description_json_string(description: str) -> str:
     begin_index = description.index("```json")
     end_index = description.rindex("```")
     return description[begin_index + 7:end_index]
+
+
+def add_string_to_file(file_path, string_to_add):
+    with open(file_path, 'a') as file:  # 'a' mode opens the file for appending
+        file.write(string_to_add + '\n')

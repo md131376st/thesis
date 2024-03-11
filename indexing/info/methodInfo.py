@@ -9,11 +9,6 @@ from indexing.utility import filter_empty_values, open_ai_description_generator,
     clean_description_json_string
 
 
-def add_string_to_file(file_path, string_to_add):
-    with open(file_path, 'a') as file:  # 'a' mode opens the file for appending
-        file.write(string_to_add + '\n')
-
-
 class MethodInfo(BaseInfo):
 
     def __init__(self, returnType, methodName, className, packageName, body, modifier, signature, parametersNames,
@@ -126,17 +121,6 @@ class MethodInfo(BaseInfo):
                                                                                    list) else self.dependencies_stubs,
         }
         return filter_empty_values(data)
-
-    def set_description(self):
-        gpt_json = self.generate_description()
-        self.description = gpt_json.get("description")
-        self.technical_questions = gpt_json.get("technical_questions")
-        self.functional_questions = gpt_json.get("functional_questions")
-
-        log_debug(f"[MethodInfo_set_description] class prefix: {self.methodName}")
-        if self.description is None:
-            log_debug(f"[MethodInfo_set_description] description exists class prefix: {self.methodName}")
-            add_string_to_file("retry_methodName.txt", f"{self.methodName}")
 
     def get_description(self):
         return self.description

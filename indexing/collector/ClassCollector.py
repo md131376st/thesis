@@ -1,6 +1,5 @@
 from indexing.collector.BaseCollector import BaseCollector
 from indexing.info.classInfo import ClassInfo
-from indexing.utility import log_debug
 
 
 class ClassCollector(BaseCollector):
@@ -8,6 +7,7 @@ class ClassCollector(BaseCollector):
         super().__init__()
         self.path = path
         class_name = str(collection_name).split(".")[-1]
+
         self.class_info = ClassInfo(class_name, path, codebase_name)
         self.class_info.set_qualified_class_name(collection_name, exact=True)
 

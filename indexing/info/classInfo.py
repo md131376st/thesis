@@ -1,7 +1,7 @@
 import json
 
 import requests
-from celery import group, chain
+from celery import group
 from mongoengine import ValidationError, NotUniqueError, OperationError
 
 from fileService import settings
@@ -165,7 +165,7 @@ class ClassInfo(BaseInfo):
 
     def generate_class_index(self):
         for method in self.method_infos:
-            method.set_description()
+            method.set_description("MethodInfo_set_description", method.methodName)
 
     def generate_class_embedding(self):
         log_debug(f"[GENERATE_CLASS_EMBEDDING] start class name: {self.class_name} ")
@@ -235,21 +235,9 @@ USAGES:\n
                 description_json = json.loads(description)
                 return description_json
             except json.JSONDecodeError:
-                log_debug(f"[MethodInfo_generate_description] not valid json: {description}")
+                log_debug(f"[ClassInfo_generate_description] not valid json: {description}")
             i += 1
         return None
-
-    def set_description(self):
-        gpt_json = self.generate_description()
-        if gpt_json:
-            self.description = gpt_json.get("description")
-            self.technical_questions = gpt_json.get("technical_questions")
-            self.functional_questions = gpt_json.get("functional_questions")
-            log_debug(f"[classInfo_set_description] class prefix: {self.qualified_class_name}")
-            if self.description is None:
-                log_debug(f"[classInfo_set_description] description exists class prefix: {self.qualified_class_name}")
-        else:
-            log_debug(f"[ERROR] [classInfo_set_description] empty gpt response : {self.qualified_class_name}")
 
     def class_attributes(self):
         fields = ""
