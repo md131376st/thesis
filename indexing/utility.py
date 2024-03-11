@@ -134,3 +134,11 @@ def rag_retrival(question,
     except Exception as e:
         log_debug(f"[ERROR] error retrieving embedding for {collection_name}: {e} ")
         return None
+
+
+def clean_description_json_string(description: str) -> str:
+    if "```" not in description:
+        return description
+    begin_index = description.index("```json")
+    end_index = description.rindex("```")
+    return description[begin_index + 7:end_index]

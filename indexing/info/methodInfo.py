@@ -1,26 +1,17 @@
 import json
-import re
-
 
 from mongoengine.errors import ValidationError, NotUniqueError, OperationError
 
 from indexing.info.baseInfo import BaseInfo
 from indexing.models import MethodRecord
 from indexing.prompt import method_description_system_prompt
-from indexing.utility import filter_empty_values, open_ai_description_generator, log_debug, rag_store
+from indexing.utility import filter_empty_values, open_ai_description_generator, log_debug, rag_store, \
+    clean_description_json_string
 
 
 def add_string_to_file(file_path, string_to_add):
     with open(file_path, 'a') as file:  # 'a' mode opens the file for appending
         file.write(string_to_add + '\n')
-
-
-def clean_description_json_string(description: str) -> str:
-    if "```" not in description:
-        return description
-    begin_index = description.index("```json")
-    end_index = description.rindex("```")
-    return description[begin_index + 7:end_index]
 
 
 class MethodInfo(BaseInfo):
@@ -176,12 +167,12 @@ class MethodInfo(BaseInfo):
                 log_debug(f"CLEANED DESCRIPTION {description}")
                 description_json = json.loads(description)
                 return description_json
-            except Exception:
+            except json.JSONDecodeError:
                 log_debug(f"[MethodInfo_generate_description] not valid json: {description}")
             i += 1
         return None
 
-    def store_mongodb(self):
+    def store_in_mongo_db(self):
         try:
             log_debug(f"[STORE_IN_DB_Method] start storing {self.methodName}")
             record = MethodRecord(

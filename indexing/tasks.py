@@ -90,7 +90,7 @@ def generate_method_info(method: dict, method_name: str, class_metadata: str) ->
     log_debug(f"[METHOD PREPROCESS] generate method description {method_name}")
     method_info.set_description()  # generating also the description with openai
     log_debug(f"[METHOD PREPROCESS] generated description is {method_info.description}")
-    method_info.store_mongodb()
+    method_info.store_in_mongo_db()
     log_debug(f"[METHOD PREPROCESS]stored in mongodb {method_name}")
     # method_info.generate_method_embedding(class_metadata)
     # log_debug(f"[METHOD PREPROCESS] generated method embedding")
@@ -140,13 +140,12 @@ def process_package_results(all_results, packageInfo_data):
         # generate class Descriptions
         classInfo.method_infos = method_info_list
         log_debug(f"[PROCESS_PACKAGE_RESULT]:generate Class description {classInfo.class_name}")
-        description = classInfo.generate_description()
-        if description:
-            classInfo.set_description(description)
-            log_debug(f"[PROCESS_PACKAGE_RESULT]:generate Class Embedding {classInfo.class_name}")
-            # generate class level embeddings
-
-            classInfo.generate_class_embedding()
+        classInfo.set_description()
+        log_debug(f"[PROCESS_PACKAGE_RESULT]:saving class description  {classInfo.class_name}")
+        # save descriptions in mongodb
+        classInfo.store_in_mongo_db()
+        # generate class level embeddings
+        # classInfo.generate_class_embedding()
 
         results.append(classInfo)
     package_info = PackageInfo.from_dict(packageInfo_data)

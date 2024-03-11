@@ -2,15 +2,18 @@ import json
 
 import requests
 from celery import group, chain
+from mongoengine import ValidationError, NotUniqueError, OperationError
 
 from fileService import settings
 from indexing.info.baseInfo import BaseInfo
 from indexing.info.methodInfo import MethodInfo
 from indexing.info.usageInfo import UsageInfo
+from indexing.models import ClassRecord
 from indexing.prompt import class_description_system_prompt
 
 from indexing.tasks import collect_method_info
-from indexing.utility import log_debug, filter_empty_values, rag_store, open_ai_description_generator
+from indexing.utility import log_debug, filter_empty_values, rag_store, open_ai_description_generator, \
+    clean_description_json_string
 
 
 class ClassInfo(BaseInfo):
@@ -31,6 +34,8 @@ class ClassInfo(BaseInfo):
         self.description = ""
         self.usages = []
         self.annotations = []
+        self.technical_questions = []
+        self.functional_questions = []
 
     def to_dict(self):
         return {
@@ -213,15 +218,38 @@ USAGES:\n
 """
         return prompt_data
 
-    def generate_description(self):
-        return open_ai_description_generator(
-            system_prompt=class_description_system_prompt,
-            content=self.description_class_prompt_data(),
-            sender=self.class_name
-        )
+    def generate_description(self) -> dict | None:
+        max_retry = 3
+        i = 0
+        while i < max_retry:
+            description = open_ai_description_generator(
+                system_prompt=class_description_system_prompt,
+                content=self.description_class_prompt_data(),
+                sender=self.class_name
+            )
 
-    def set_description(self, description):
-        self.description = description
+            log_debug(f"[ClassInfo_generate_description] description: {type(description)}")
+            try:
+                description = clean_description_json_string(description)
+                log_debug(f"[ClassInfo_generate_description] CLEANED DESCRIPTION {description}")
+                description_json = json.loads(description)
+                return description_json
+            except json.JSONDecodeError:
+                log_debug(f"[MethodInfo_generate_description] not valid json: {description}")
+            i += 1
+        return None
+
+    def set_description(self):
+        gpt_json = self.generate_description()
+        if gpt_json:
+            self.description = gpt_json.get("description")
+            self.technical_questions = gpt_json.get("technical_questions")
+            self.functional_questions = gpt_json.get("functional_questions")
+            log_debug(f"[classInfo_set_description] class prefix: {self.qualified_class_name}")
+            if self.description is None:
+                log_debug(f"[classInfo_set_description] description exists class prefix: {self.qualified_class_name}")
+        else:
+            log_debug(f"[ERROR] [classInfo_set_description] empty gpt response : {self.qualified_class_name}")
 
     def class_attributes(self):
         fields = ""
@@ -231,3 +259,33 @@ USAGES:\n
 
     def get_description(self):
         return self.description
+
+    def store_in_mongo_db(self):
+        try:
+            log_debug(f"[STORE_IN_DB_Class] start storing {self.class_name}")
+            record = ClassRecord(
+                name=self.qualified_class_name,
+                description=self.description,
+                package_name=self.packageName,
+                technical_questions=self.technical_questions,
+                functional_questions=self.functional_questions,
+                metadata=self.get_meta_data()
+            )
+            record.save()
+            log_debug(f"[STORE_IN_DB_Class] finish storing {self.qualified_class_name}")
+        except ValidationError as e:
+            # Handle validation errors, e.g., missing fields or incorrect data types
+            log_debug(f"[ERROR][STORE_IN_DB_Class]Validation error while saving record: {e}")
+            # Optionally, log the error or take other actions like sending a notification
+        except NotUniqueError as e:
+            # Handle errors related to unique constraints being violated
+            log_debug(f"[ERROR][STORE_IN_DB_Class]Unique constraint violated while saving record: {e}")
+            # Optionally, log the error or take other actions
+        except OperationError as e:
+            # Handle general operation errors, e.g., issues with the connection to MongoDB
+            log_debug(f"[ERROR][STORE_IN_DB_Class]Operation error while saving record: {e}")
+            # Optionally, log the error or take other actions
+        except Exception as e:
+            # Handle any other exceptions that were not caught by the specific handlers above
+            log_debug(f"[ERROR][STORE_IN_DB_Class]An unexpected error occurred while saving record: {e}")
+            # Optionally, log the error or take other actions
