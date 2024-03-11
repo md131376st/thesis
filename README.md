@@ -66,11 +66,11 @@ We have two main end points in our system:
        }
        ```
 
-Please note that `n_package_results` and `n_class_results` should not be used with `query_type:class`
-and `query_type:package` respectively. If `query_type` is set to `class`, only `n_method_results` should be provided.
-Similarly, if `query_type` is set to `package`, only `n_method_results` and `n_class_results` should be provided.
+   Please note that `n_package_results` and `n_class_results` should not be used with `query_type:class`
+   and `query_type:package` respectively. If `query_type` is set to `class`, only `n_method_results` should be provided.
+   Similarly, if `query_type` is set to `package`, only `n_method_results` and `n_class_results` should be provided.
 
-3. **Store**
+3. **Create**
     - This end point is used to index code bases in a hieratical structure.
     - the end point return the 202 status with a task id that can be used by the Task State to show it's state
     - path field is the local path to the repo.
@@ -87,7 +87,7 @@ Similarly, if `query_type` is set to `package`, only `n_method_results` and `n_c
    Example:
 
    ```
-   POST /index/store
+   POST /index/create
    {
     "path": "/Users/davarimona/Downloads/core-r-metaconto-v1",
     "indexType": "class",

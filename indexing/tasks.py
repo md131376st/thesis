@@ -85,13 +85,16 @@ def collect_method_info(**kwargs):
         return None
 
 
-def generate_method_info(method: dict, method_name: str, class_metadata: str) -> dict:
+def generate_method_info(method: dict, method_name: str, class_metadata: dict) -> dict:
     method_info = MethodInfo.from_dict(method, False)
     log_debug(f"[METHOD PREPROCESS] generate method description {method_name}")
     method_info.set_description("MethodInfo_set_description",
                                 method_name)  # generating also the description with openai
     log_debug(f"[METHOD PREPROCESS] generated description is {method_info.description}")
-    method_info.store_in_mongo_db()
+    method_info.store_in_mongo_db(
+        codebase_name=class_metadata.get("codebase_name"),
+        collection_metadata=class_metadata
+    )
     log_debug(f"[METHOD PREPROCESS]stored in mongodb {method_name}")
     # method_info.generate_method_embedding(class_metadata)
     # log_debug(f"[METHOD PREPROCESS] generated method embedding")

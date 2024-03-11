@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from mongoengine import Document, fields
 
+
 class Record(models.Model):
     class Type(models.IntegerChoices):
         Package = 1, _('Package')
@@ -19,18 +20,25 @@ class Record(models.Model):
 
 
 class MethodRecord(Document):
-    name = fields.StringField()
-    description = fields.StringField()
+    method_name = fields.StringField()
     qualified_class_name = fields.StringField()
     package_name = fields.StringField()
+    codebase_name = fields.StringField()
+    chromadb_collection_name = fields.StringField()
+    collection_metadata = fields.DictField()
+
+    description = fields.StringField()
     metadata = fields.DictField()
     technical_questions = fields.ListField()
     functional_questions = fields.ListField()
 
 
 class ClassRecord(Document):
-    name = fields.StringField()
+    qualified_class_name = fields.StringField()
     package_name = fields.StringField()
+    codebase_name = fields.StringField()
+    chromadb_collection_name = fields.StringField()
+
     description = fields.StringField()
     metadata = fields.DictField()
     technical_questions = fields.ListField()
@@ -38,7 +46,10 @@ class ClassRecord(Document):
 
 
 class PackageRecord(Document):
-    name = fields.StringField()
+    package_name = fields.StringField()
+    codebase_name = fields.StringField()
+    chromadb_collection_name = fields.StringField()
+
     description = fields.StringField()
     metadata = fields.DictField()
     technical_questions = fields.ListField()

@@ -156,17 +156,21 @@ class MethodInfo(BaseInfo):
             i += 1
         return None
 
-    def store_in_mongo_db(self):
+    def store_in_mongo_db(self, codebase_name, collection_metadata):
         try:
             log_debug(f"[STORE_IN_DB_Method] start storing {self.methodName}")
             record = MethodRecord(
-                name=self.methodName,
-                description=self.description,
+                method_name=self.methodName,
                 qualified_class_name=f"{self.packageName}.{self.className}",
                 package_name=self.packageName,
+                codebase_name=codebase_name,
+                collection_metadata=collection_metadata,
+
+                metadata=self.get_meta_data(),
+                description=self.description,
                 technical_questions=self.technical_questions,
                 functional_questions=self.functional_questions,
-                metadata=self.get_meta_data()
+
             )
             record.save()
             log_debug(f"[STORE_IN_DB_Method] finish storing {self.methodName}")
