@@ -1,4 +1,4 @@
-from indexing.info.baseInfo import BaseInfo
+from indexing.info.BaseInfo import BaseInfo
 import json
 
 

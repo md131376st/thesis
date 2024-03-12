@@ -2,7 +2,7 @@ import json
 
 from mongoengine.errors import ValidationError, NotUniqueError, OperationError
 
-from indexing.info.baseInfo import BaseInfo
+from indexing.info.BaseInfo import BaseInfo
 from indexing.models import MethodRecord
 from indexing.prompt import method_description_system_prompt
 from indexing.utility import filter_empty_values, open_ai_description_generator, log_debug, rag_store, \

@@ -5,9 +5,9 @@ from celery import group
 from mongoengine import ValidationError, NotUniqueError, OperationError
 
 from fileService import settings
-from indexing.info.baseInfo import BaseInfo
-from indexing.info.methodInfo import MethodInfo
-from indexing.info.usageInfo import UsageInfo
+from indexing.info.BaseInfo import BaseInfo
+from indexing.info.MethodInfo import MethodInfo
+from indexing.info.UsageInfo import UsageInfo
 from indexing.models import ClassRecord
 from indexing.prompt import class_description_system_prompt
 

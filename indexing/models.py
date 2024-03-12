@@ -1,22 +1,4 @@
-from django.db import models
-from django.utils.translation import gettext_lazy as _
 from mongoengine import Document, fields
-
-
-class Record(models.Model):
-    class Type(models.IntegerChoices):
-        Package = 1, _('Package')
-        Class = 2, _('class')
-        Method = 3, _('Method')
-
-    collection_name = models.CharField(max_length=255)
-    type = models.IntegerField(
-        choices=Type.choices,
-        default=Type.Method,
-    )
-    chromaDb_id = models.UUIDField()
-    name = models.CharField(max_length=255)
-    pass
 
 
 class MethodRecord(Document):
@@ -33,7 +15,7 @@ class MethodRecord(Document):
     functional_questions = fields.ListField()
     meta = {
         'indexes': [
-            'codebase_name'
+            ('codebase_name', 'qualified_class_name')
         ]
     }
 
@@ -50,7 +32,8 @@ class ClassRecord(Document):
     functional_questions = fields.ListField()
     meta = {
         'indexes': [
-            'codebase_name'
+            ('codebase_name', 'package_name'),
+            'qualified_class_name'
         ]
     }
 
@@ -66,6 +49,7 @@ class PackageRecord(Document):
     functional_questions = fields.ListField()
     meta = {
         'indexes': [
-            'codebase_name'
+            'codebase_name',
+            'package_name'
         ]
     }

@@ -17,17 +17,20 @@ class IndexCreationView(CreateAPIView):
         if serializer.is_valid():
 
             if serializer.validated_data["indexType"] == IndexLevelTypes.CLASS.value:
-                return self.class_index(serializer.validated_data["path"],
-                                        serializer.validated_data["collectionName"],
-                                        serializer.validated_data["codebaseName"])
+                return self.class_index(
+                    serializer.validated_data["path"],
+                    serializer.validated_data["collectionName"],
+                    serializer.validated_data["codebaseName"])
             elif serializer.validated_data["indexType"] == IndexLevelTypes.PACKAGE.value:
-                return self.package_index(serializer.validated_data["path"],
-                                          serializer.validated_data["collectionName"],
-                                          serializer.validated_data["codebaseName"])
+                return self.package_index(
+                    serializer.validated_data["path"],
+                    serializer.validated_data["collectionName"],
+                    serializer.validated_data["codebaseName"])
             else:
-                return self.codebase_index(serializer.validated_data["path"],
-                                           serializer.validated_data["collectionName"],
-                                           serializer.validated_data["codebaseName"])
+                return self.codebase_index(
+                    serializer.validated_data["path"],
+                    serializer.validated_data["collectionName"],
+                    serializer.validated_data["codebaseName"])
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

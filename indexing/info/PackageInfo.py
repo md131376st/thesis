@@ -5,7 +5,7 @@ from indexing.models import PackageRecord
 from indexing.utility import packet_info_call, log_debug, filter_empty_values, open_ai_description_generator, \
     clean_description_json_string
 
-from indexing.info.baseInfo import BaseInfo
+from indexing.info.BaseInfo import BaseInfo
 from indexing.prompt import package_description_system_prompt
 from mongoengine import ValidationError, NotUniqueError, OperationError
 
@@ -30,14 +30,14 @@ class PackageInfo(BaseInfo):
 
     @classmethod
     def from_dict(cls, data):
-        from indexing.info.classInfo import ClassInfo
+        from indexing.info.ClassInfo import ClassInfo
         instance = cls(data["package_name"], data["code_base_name"])
         instance.classes = [ClassInfo.from_dict(ci_data) for ci_data in data["classes"]]
         instance.description = data["description"]
         return instance
 
     def collect_classes(self, prefix, sourceCodePath):
-        from indexing.info.classInfo import ClassInfo
+        from indexing.info.ClassInfo import ClassInfo
         log_debug(f"[COLLECT_CLASSES] class prefix: {prefix}")
         data = packet_info_call(prefix=prefix, sourceCodePath=sourceCodePath)
         if "classNames" in data and data["classNames"] is not None:
@@ -78,7 +78,7 @@ class PackageInfo(BaseInfo):
         self.classes.append(class_info)
 
     def generate_package_embeddings(self):
-        from indexing.info.classInfo import rag_store
+        from indexing.info.ClassInfo import rag_store
         chunks = []
         metadata = []
         if self.classes:
@@ -95,7 +95,7 @@ class PackageInfo(BaseInfo):
             log_debug(f"[ERROR] empty package")
 
     def generate_codebase_embeddings(self):
-        from indexing.info.classInfo import rag_store
+        from indexing.info.ClassInfo import rag_store
         if self.description:
             collection_name = "MyCodeBase"
             chunks = [{

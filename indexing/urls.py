@@ -3,7 +3,7 @@ from django.urls import path
 from indexing.view.IndexCreationView import IndexCreationView
 from indexing.view.IndexRetrivalView import IndexRetrivalView
 from indexing.view.StoreEmbeddingsView import StoreEmbeddingsView
-from indexing.view.celeryMangerView import CeleryManger
+from indexing.view.CeleryMangerView import CeleryManger
 
 app_name = 'indexing'
 urlpatterns = [

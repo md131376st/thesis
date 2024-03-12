@@ -1,5 +1,5 @@
 from indexing.collector.BaseCollector import BaseCollector
-from indexing.info.classInfo import ClassInfo
+from indexing.info.ClassInfo import ClassInfo
 
 
 class ClassCollector(BaseCollector):
