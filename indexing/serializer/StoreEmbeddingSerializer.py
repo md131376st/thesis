@@ -3,7 +3,7 @@ from rest_framework import serializers
 from indexing.types import IndexLevelTypes
 
 
-class IndexCreateSerializer(serializers.Serializer):
+class StoreEmbeddingSerializer(serializers.Serializer):
     # location in system path
     indexType = serializers.ChoiceField(
         choices=[(choice.value, choice.name) for choice in IndexLevelTypes],

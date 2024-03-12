@@ -19,6 +19,24 @@ class MethodRecord(Document):
         ]
     }
 
+    def __str__(self):
+        return self.method_name
+
+    def to_dict(self):
+        return {
+            "chunks": [
+                {
+                    "text": self.description,
+                    "id": str(self.id)
+                }
+            ],
+            "metadata": [
+                self.metadata
+            ],
+            "collection_metadata": self.collection_metadata,
+            "collection_name": self.qualified_class_name
+        }
+
 
 class ClassRecord(Document):
     qualified_class_name = fields.StringField()
