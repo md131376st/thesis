@@ -4,8 +4,8 @@ import requests
 from celery import shared_task, group, chain
 
 from fileService import settings
-from indexing.info.methodInfo import MethodInfo
-from indexing.info.packageInfo import PackageInfo
+from indexing.info.MethodInfo import MethodInfo
+from indexing.info.PackageInfo import PackageInfo
 from indexing.utility import log_debug
 
 
@@ -22,7 +22,7 @@ def collect_package_class_info(**kwargs):
     groups = [collect_class_info.s(classinfo=classinfo.to_dict()) for classinfo in packageInfo.classes]
     workflow = chain(
         group(*groups) |
-        process_package_results.s(packageInfo_data=packageInfo_data) |
+        process_package_results.s(packageInfo_data=packageInfo_data),
         update_package_info.s(packageInfo_data=packageInfo_data)
     )
     return workflow()
@@ -33,7 +33,7 @@ def update_package_info(results, packageInfo_data):
     log_debug(f"\n [UPDATE_PACKAGE_INFO] start")
     # updates the package data after result and returns it
     packageInfo = PackageInfo.from_dict(packageInfo_data)
-    from indexing.info.classInfo import ClassInfo
+    from indexing.info.ClassInfo import ClassInfo
     log_debug(f"\n [UPDATE_PACKAGE_INFO] set package class list :\n\n")
     packageInfo.classes = [ClassInfo.from_dict(groupResult) for groupResult in results]
     log_debug(f"\n [UPDATE_PACKAGE_INFO] generate package class list :\n \n")
@@ -107,7 +107,7 @@ def collect_class_info(**kwargs):
     Starter for collecting the info about a single class in a package.
     """
     classinfo_data = kwargs.get('classinfo')
-    from indexing.info.classInfo import ClassInfo
+    from indexing.info.ClassInfo import ClassInfo
     class_info = ClassInfo.from_dict(classinfo_data)
     class_metadata = class_info.get_meta_data()
     log_debug(f"[CLASS_INDEXING] start class name: {class_info.class_name}")
@@ -126,7 +126,7 @@ def collect_class_info(**kwargs):
 @shared_task
 def process_package_results(all_results, packageInfo_data):
     log_debug("[PROCESS_PACKAGE_RESULT] started")
-    from indexing.info.classInfo import ClassInfo
+    from indexing.info.ClassInfo import ClassInfo
     results = []
     for group_result in all_results:
         # generate class embeddings
