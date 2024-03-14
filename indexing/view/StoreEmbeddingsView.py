@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from indexing.serializer.StoreEmbeddingSerializer import StoreEmbeddingSerializer
 from indexing.storageManger.ClassStorageManger import ClassStorageManger
-from indexing.types import IndexLevelTypes
+from indexing.types import IndexLevelTypes, StoreLevelTypes
 
 
 class StoreEmbeddingsView(CreateAPIView):
@@ -13,40 +13,53 @@ class StoreEmbeddingsView(CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-
-            if serializer.validated_data["indexType"] == IndexLevelTypes.CLASS.value:
+            if serializer.validated_data["indexType"] == StoreLevelTypes.OBJECT.value:
                 return self.class_storage(
                     serializer.validated_data["collectionName"],
-                    serializer.validated_data["codebaseName"])
-            elif serializer.validated_data["indexType"] == IndexLevelTypes.PACKAGE.value:
+                    serializer.validated_data["codebaseName"],
+                    serializer.validated_data["refresh"]
+                )
+
+            elif serializer.validated_data["indexType"] == StoreLevelTypes.CLASS.value:
+                return self.class_storage(
+                    serializer.validated_data["collectionName"],
+                    serializer.validated_data["codebaseName"],
+                    serializer.validated_data["refresh"]
+                )
+            elif serializer.validated_data["indexType"] == StoreLevelTypes.PACKAGE.value:
                 return self.package_storage(
                     serializer.validated_data["collectionName"],
-                    serializer.validated_data["codebaseName"])
+                    serializer.validated_data["codebaseName"],
+                    serializer.validated_data["refresh"],
+                )
             else:
                 return self.codebase_storage(
                     serializer.validated_data["collectionName"],
-                    serializer.validated_data["codebaseName"])
+                    serializer.validated_data["codebaseName"],
+                    serializer.validated_data["refresh"]
+                )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def codebase_storage(self, collection_name, codebase_name):
+    def codebase_storage(self, collection_name, codebase_name, refresh):
         taskid = "codebase"
 
         return Response({"taskid": taskid}, status=status.HTTP_202_ACCEPTED)
 
-    def package_storage(self, collection_name, codebase_name):
+    def package_storage(self, collection_name, codebase_name, refresh):
         taskid = "package"
 
         return Response({"taskid": taskid}, status=status.HTTP_202_ACCEPTED)
 
-    def class_storage(self, collection_name, codebase_name):
+    def class_storage(self, collection_name, codebase_name, refresh):
         task_id = "class"
         classStorageManger = ClassStorageManger(collection_name, codebase_name)
         method_object = classStorageManger.fetch_data_if_exists()
         if method_object:
-            new_method_objects = classStorageManger.check_embedding_exists(method_object)
-            if new_method_objects:
-
+            if not refresh:
+                method_object = classStorageManger.check_embedding_exists(method_object)
+            if method_object:
+                classStorageManger.store(method_object)
                 return Response(
                     {"taskId": task_id},
                     status=status.HTTP_202_ACCEPTED)

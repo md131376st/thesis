@@ -23,5 +23,5 @@ class ClassStorageManger(BasicStorageManger):
         return methodRecords
 
 
-def store(self):
-    pass
+    def store(self, methodRecords:QuerySet):
+        pass

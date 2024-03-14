@@ -12,3 +12,10 @@ class QueryTypes(Enum):
     CODEBASE = "codebase"
     PACKAGE = "package"
     CLASS = "class"
+
+
+class StoreLevelTypes(Enum):
+    CODEBASE = "codebase"
+    PACKAGE = "package"
+    CLASS = "class"
+    OBJECT = "object"

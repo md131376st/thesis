@@ -1,6 +1,6 @@
 from abc import ABC
 
-from indexing.utility import log_debug, add_string_to_file
+from mongoengine import QuerySet
 
 
 class BasicStorageManger(ABC):
@@ -10,9 +10,5 @@ class BasicStorageManger(ABC):
     def to_dict(self):
         pass
 
-    @classmethod
-    def from_dict(cls, data):
-        pass
-
-    def store(self):
+    def store(self, queryset: QuerySet):
         pass
