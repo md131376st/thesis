@@ -1,6 +1,7 @@
 import json
+from typing import List, Any
 
-from mongoengine import LookUpError
+from mongoengine import LookUpError, DoesNotExist
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.views import APIView
@@ -22,45 +23,72 @@ class DescriptionViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['create']:
             return IndexCreateSerializer
-        if self.action in ['list', 'update']:
-            type = self.kwargs['type']
-            if type == DescriptionType.CODEBASE or type == DescriptionType.METHOD:
+        if self.action in ['list', 'update', 'destroy']:
+            description_type = self.kwargs['type']
+            if (description_type == DescriptionType.CODEBASE
+                    or description_type == DescriptionType.METHOD):
                 return MethodRecordSerializer
-            elif type == DescriptionType.PACKAGE:
+            elif description_type == DescriptionType.PACKAGE:
                 return PackageRecordSerializer
             else:
                 return ClassRecordSerializer
-        if self.action in ['destroy']:
-            return IndexCreateSerializer
         return IndexCreateSerializer
 
     def get_queryset(self):
-        type = self.kwargs['type']
+        if self.action in ['list']:
+            return self.list_get_queryset()
+        elif self.action in ['update', 'destroy']:
+            return self.update_get_queryset()
+
+    def update_get_queryset(self):
+        description_type = self.kwargs['type']
+        if description_type == DescriptionType.CODEBASE:
+            raise exceptions.ValidationError(
+                detail={"error": "codebase can't be used with put"},
+                code=status.HTTP_400_BAD_REQUEST)
+        elif description_type == DescriptionType.PACKAGE:
+            return PackageRecord.objects()
+        elif description_type == DescriptionType.METHOD:
+            return MethodRecord.objects()
+        else:
+            return ClassRecord.objects()
+
+    def get_codebase_name(self) -> ValidationError | str | None:
+        description_type = self.kwargs['type']
         codebaseName = self.request.query_params.get('codebaseName', None)
-        if not codebaseName and type is not DescriptionType.CODEBASE:
+        if not codebaseName and description_type is not DescriptionType.CODEBASE:
             raise exceptions.ValidationError(
                 detail={"codebaseName": "This field is required."},
                 code=status.HTTP_400_BAD_REQUEST)
-        filter_fields = self.request.query_params.get('filter')
+        return codebaseName
+
+    def get_filter_fields(self) -> ValidationError | list[str] | None:
+        filter_fields = self.request.query_params.get('filter', None)
         try:
-            filter_fields = json.loads(filter_fields)
+            if filter_fields:
+                filter_fields = json.loads(filter_fields)
+                if isinstance(filter_fields, str):
+                    filter_fields = [filter_fields]
         except json.JSONDecodeError:
             return exceptions.ValidationError(
                 detail={'error': 'Invalid format for filter parameters'},
                 code=status.HTTP_400_BAD_REQUEST)
-        if isinstance(filter_fields, str):
-            filter_fields = [filter_fields]
+        return filter_fields
+
+    def list_get_queryset(self):
+        description_type = self.kwargs['type']
+        codebaseName = self.get_codebase_name()
+        filter_fields = self.get_filter_fields()
         records = []
-        if type == DescriptionType.CODEBASE:
+        if description_type == DescriptionType.CODEBASE:
             for model in [MethodRecord, ClassRecord, PackageRecord]:
                 if filter_fields:
                     filter_fields.append('id')
                     queryset = model.objects.only(*filter_fields)
-
                 else:
                     queryset = model.objects.all()
                 records.extend(queryset)
-        elif type == DescriptionType.PACKAGE:
+        elif description_type == DescriptionType.PACKAGE:
             if filter_fields:
                 filter_fields.append('id')
                 queryset = PackageRecord.objects(
@@ -71,7 +99,7 @@ class DescriptionViewSet(viewsets.ModelViewSet):
                     codebase_name=codebaseName
                 )
             records.extend(queryset)
-        elif type == DescriptionType.CLASS:
+        elif description_type == DescriptionType.CLASS:
             if filter_fields:
                 filter_fields.append('id')
                 queryset = ClassRecord.objects(
@@ -105,19 +133,53 @@ class DescriptionViewSet(viewsets.ModelViewSet):
         except LookUpError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+    def update_objects(self, data):
+        instance = self.get_queryset().get(id=data['id'])
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            raise exceptions.ValidationError(
+                detail={"error": "serializer.errors"},
+                code=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.data)
+    def update(self, request, *args, **kwargs):
+        if self.kwargs['type'] is DescriptionType.CODEBASE:
+            return Response(
+                data={'error': "codebase can't be used with put"},
+                status=status.HTTP_404_NOT_FOUND)
+        try:
+            data = request.data
+            if isinstance(data, list):
+                for obj in data:
+                    self.update_objects(obj)
+            else:
+                self.update_objects(data)
+            return Response(status=status.HTTP_200_OK)
+
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        if self.kwargs['type'] is DescriptionType.CODEBASE:
+            return Response(
+                data={'error': "codebase can't be used with put"},
+                status=status.HTTP_404_NOT_FOUND)
+        instance_id = self.request.query_params.get('id', None)
+        if instance_id:
+            try:
+                instance = self.get_queryset().get(id=instance_id)
+                self.perform_destroy(instance)
+                return Response(status=status.HTTP_200_OK)
+            except DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(
+                data={"error": "id parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
