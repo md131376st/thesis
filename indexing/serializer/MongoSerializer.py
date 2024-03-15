@@ -1,7 +1,5 @@
 from rest_framework import serializers
 
-from indexing.models import MethodRecord
-
 
 class MethodRecordSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)

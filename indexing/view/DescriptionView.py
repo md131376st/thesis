@@ -1,10 +1,9 @@
 import json
-from typing import List, Any
+
 
 from mongoengine import LookUpError, DoesNotExist
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import GenericAPIView
-from rest_framework.views import APIView
+
 
 from indexing.models import MethodRecord, ClassRecord, PackageRecord
 from indexing.serializer.IndexCreateSerializer import IndexCreateSerializer
