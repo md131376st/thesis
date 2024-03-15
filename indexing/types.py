@@ -14,8 +14,25 @@ class QueryTypes(Enum):
     CLASS = "class"
 
 
+class DescriptionType(Enum):
+    CODEBASE = "codebase"
+    PACKAGE = "package"
+    CLASS = "class"
+    METHOD = "method"
+
+
 class StoreLevelTypes(Enum):
     CODEBASE = "codebase"
     PACKAGE = "package"
     CLASS = "class"
-    OBJECT = "object"
+    OBJECT = "method"
+
+
+class TypeConverter:
+    regex = '(codebase|package|class|method)'
+
+    def to_python(self, value: str):
+        return DescriptionType(value)
+
+    def to_url(self, value: DescriptionType):
+        return value.value
