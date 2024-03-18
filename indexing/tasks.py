@@ -6,7 +6,7 @@ from celery import shared_task, group, chain
 from fileService import settings
 from indexing.info.MethodInfo import MethodInfo
 from indexing.info.PackageInfo import PackageInfo
-from indexing.models import MethodRecord, ClassRecord
+from indexing.models import MethodRecord, ClassRecord, PackageRecord
 from indexing.types import StoreLevelTypes
 from indexing.utility import log_debug, rag_store
 
@@ -178,15 +178,17 @@ def generate_embedding(record, level):
         id = record["chunks"][0]["id"]
         log_debug(id)
         if level == StoreLevelTypes.CLASS.value:
-            method_record = MethodRecord.objects().get(id=id)
-            log_debug(f"result {result["collection_name"]}")
-            method_record.chromadb_collection_name = result["collection_name"]
-            method_record.save()
+            record = MethodRecord.objects().get(id=id)
+
         elif level == StoreLevelTypes.PACKAGE.value:
-            method_record = ClassRecord.objects().get(id=id)
-            log_debug(f"result {result["collection_name"]}")
-            method_record.chromadb_collection_name = result["collection_name"]
-            method_record.save()
+            record = ClassRecord.objects().get(id=id)
+
+        elif level == StoreLevelTypes.CODEBASE.value:
+            record = PackageRecord.objects().get(id=id)
+
+        log_debug(f"result {result["collection_name"]}")
+        record.chromadb_collection_name = result["collection_name"]
+        record.save()
 
     log_debug(
         f"[GENERATE_EMBEDDING] finish embeddings: {level}, {record["name"]} : {record['collection_name']}")

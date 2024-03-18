@@ -23,7 +23,7 @@ class ClassStorageManger(BasicStorageManger):
         self.query_set = self.fetch_data_if_exists(self.query_set)
         if not self.query_set:
             return {
-                "error": "The combination of (collectionName, codebaseName) does not exist."
+                "error": f"The combination of ({self.collection_name}, {self.codebase_name}) does not exist."
             }
 
         if not refresh:

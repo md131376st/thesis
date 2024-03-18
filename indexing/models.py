@@ -1,5 +1,7 @@
 from mongoengine import Document, fields
 
+from fileService.settings import INDEXROOT
+
 
 class MethodRecord(Document):
     method_name = fields.StringField()
@@ -91,3 +93,19 @@ class PackageRecord(Document):
             'package_name'
         ]
     }
+
+    def to_dict(self):
+        return {
+            "chunks": [
+                {
+                    "text": self.description,
+                    "id": str(self.id)
+                }
+            ],
+            "metadata": [
+                self.metadata
+            ],
+            "collection_metadata": {},
+            "collection_name": INDEXROOT,
+            "name": self.package_name
+        }

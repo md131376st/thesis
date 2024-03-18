@@ -9,6 +9,6 @@ class StoreEmbeddingSerializer(serializers.Serializer):
         choices=[(choice.value, choice.name) for choice in StoreLevelTypes],
         default=StoreLevelTypes.CODEBASE,
     )
-    collectionName = serializers.CharField(required=True)
+    collectionName = serializers.CharField(required=False)
     codebaseName = serializers.CharField(required=True)
     refresh = serializers.BooleanField(required=False, default=False)
