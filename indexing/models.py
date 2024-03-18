@@ -34,7 +34,8 @@ class MethodRecord(Document):
                 self.metadata
             ],
             "collection_metadata": self.collection_metadata,
-            "collection_name": self.qualified_class_name
+            "collection_name": self.qualified_class_name,
+            "name": self.method_name
         }
 
 

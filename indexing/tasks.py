@@ -6,7 +6,9 @@ from celery import shared_task, group, chain
 from fileService import settings
 from indexing.info.MethodInfo import MethodInfo
 from indexing.info.PackageInfo import PackageInfo
-from indexing.utility import log_debug
+from indexing.models import MethodRecord
+from indexing.types import StoreLevelTypes
+from indexing.utility import log_debug, rag_store
 
 
 @shared_task()
@@ -157,3 +159,29 @@ def process_package_results(all_results, packageInfo_data):
     log_debug(f"[PROCESS_PACKAGE_RESULT] generate package embedding: {package_info.package_name} ")
     results_ = [classInfo.to_dict() for classInfo in results]
     return results_
+
+
+@shared_task
+def generate_embedding(record, level):
+    log_debug(
+        f"[GENERATE_EMBEDDING] start embeddings {level}, {record["name"]} : {record['collection_name']}"
+    )
+    result = rag_store(chunks=record["chunks"],
+                       metadata=record["metadata"],
+                       collection_metadata=record["collection_metadata"],
+                       collection_name=record["collection_name"]
+                       )
+    if 'error' in result:
+        log_debug(
+            f"[GENERATE_EMBEDDING] rag store failed level: {level}, {record["name"]} : {record['collection_name']} error: {result['error']}")
+    else:
+        id = record["chunks"][0]["id"]
+        log_debug(id)
+        if level == StoreLevelTypes.CLASS.value:
+            method_record = MethodRecord.objects().get(id=id)
+            log_debug(f"result {result["collection_name"]}")
+            method_record.chromadb_collection_name = result["collection_name"]
+            method_record.save()
+
+    log_debug(
+        f"[GENERATE_EMBEDDING] finish embeddings: {level}, {record["name"]} : {record['collection_name']}")

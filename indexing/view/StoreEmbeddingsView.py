@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, ListCreateAPIView
 from rest_framework.response import Response
 
 from indexing.serializer.StoreEmbeddingSerializer import StoreEmbeddingSerializer
@@ -7,7 +7,7 @@ from indexing.storageManger.ClassStorageManger import ClassStorageManger
 from indexing.types import IndexLevelTypes, StoreLevelTypes
 
 
-class StoreEmbeddingsView(CreateAPIView):
+class StoreEmbeddingsView(ListCreateAPIView):
     serializer_class = StoreEmbeddingSerializer
 
     def create(self, request, *args, **kwargs):
@@ -52,27 +52,18 @@ class StoreEmbeddingsView(CreateAPIView):
         return Response({"taskid": taskid}, status=status.HTTP_202_ACCEPTED)
 
     def class_storage(self, collection_name, codebase_name, refresh):
-        task_id = "class"
         classStorageManger = ClassStorageManger(collection_name, codebase_name)
-        method_object = classStorageManger.fetch_data_if_exists()
-        if method_object:
-            if not refresh:
-                method_object = classStorageManger.check_embedding_exists(method_object)
-            if method_object:
-                classStorageManger.store(method_object)
-                return Response(
-                    {"taskId": task_id},
-                    status=status.HTTP_202_ACCEPTED)
-            else:
-                return Response(
-                    {
-                        "message": "All the requested data is successfully stored in the Chroma DB."
-                    },
-                    status=status.HTTP_200_OK)
+        data = classStorageManger.store(refresh=refresh)
+        if "taskId" in data:
+            return Response(
+                data,
+                status=status.HTTP_202_ACCEPTED)
+        elif "message" in data:
+            return Response(
+                data,
+                status=status.HTTP_200_OK)
 
         else:
             return Response(
-                {
-                    "error": "The combination of (collectionName, codebaseName) does not exist."
-                },
+                data,
                 status=status.HTTP_404_NOT_FOUND)

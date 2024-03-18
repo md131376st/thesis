@@ -21,6 +21,7 @@ urlpatterns = [
               'delete': 'destroy'
               }
          )),
+
     # data una domanda ritorna i documenti più rilevanti # document/retri
-    path('index/store', StoreEmbeddingsView.as_view())  # crea un indice della code base
+    path('index', StoreEmbeddingsView.as_view())  # crea un indice della code base
 ]
