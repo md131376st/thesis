@@ -1,8 +1,5 @@
 from celery import group
-from django.core.exceptions import ObjectDoesNotExist
 from mongoengine import QuerySet
-
-from rest_framework import status
 
 from indexing.models import MethodRecord
 from indexing.storageManger.BasicSotrageManger import BasicStorageManger
@@ -14,6 +11,13 @@ class ClassStorageManger(BasicStorageManger):
     def __init__(self, collection_name, codebase_name):
         super().__init__(collection_name, codebase_name)
         self.query_set = MethodRecord.objects()
+
+    def fetch_data_if_exists(self, query_set: QuerySet):
+        query_set = query_set.filter(
+            qualified_class_name=self.collection_name,
+            codebase_name=self.codebase_name
+        )
+        return query_set
 
     def store(self, refresh: bool):
         self.query_set = self.fetch_data_if_exists(self.query_set)

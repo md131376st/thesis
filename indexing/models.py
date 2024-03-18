@@ -56,6 +56,25 @@ class ClassRecord(Document):
         ]
     }
 
+    def to_dict(self):
+        return {
+            "chunks": [
+                {
+                    "text": self.description,
+                    "id": str(self.id)
+                }
+            ],
+            "metadata": [
+                self.metadata
+            ],
+            "collection_metadata": {
+                "code_base_name": self.codebase_name,
+                "packageName": self.package_name
+            },
+            "collection_name": self.package_name,
+            "name": self.qualified_class_name
+        }
+
 
 class PackageRecord(Document):
     package_name = fields.StringField()
