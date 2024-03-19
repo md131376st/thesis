@@ -23,17 +23,20 @@ class ClassInfo(BaseInfo):
         self.class_name = class_name
         self.codebase_name = codebase_name
         self.qualified_class_name = None
+        self.packageName = None
         self.code = None
-        self.implemented_class = None
         self.extended_class = None
+        self.type = None
         self.fields = []
         self.methods = []
         self.method_infos = []
         self.method_names = []
-        self.packageName = None
-        self.description = ""
-        self.usages = []
+        self.imports = []
+        self.usages = None
         self.annotations = []
+        self.implemented_classes = []
+        self.indirect_inheritances = []
+        self.description = ""
         self.technical_questions = []
         self.functional_questions = []
 
@@ -43,17 +46,20 @@ class ClassInfo(BaseInfo):
             "class_name": self.class_name,
             "codebase_name": self.codebase_name,
             "qualified_class_name": self.qualified_class_name,
+            "packageName": self.packageName,
             "code": self.code,
-            "implemented_class": self.implemented_class,
             "extended_class": self.extended_class,
+            "type": self.type,
             "fields": self.fields,
             "methods": self.methods,
             "method_infos": [method_info.to_dict() for method_info in self.method_infos],
             "method_names": self.method_names,
-            "description": self.description,
-            "packageName": self.packageName,
+            "imports": self.imports,
             "usages": [usage.to_dict() for usage in self.usages],
-            "annotations": self.annotations
+            "annotations": self.annotations,
+            "implemented_classes": self.implemented_classes,
+            "indirect_inheritances": self.indirect_inheritances,
+            "description": self.description,
         }
 
     @classmethod
@@ -61,17 +67,20 @@ class ClassInfo(BaseInfo):
         instance = cls(data["class_name"], data["sourceCodePath"], data["codebase_name"])
         instance.qualified_class_name = data["qualified_class_name"]
         instance.codebase_name = data["codebase_name"]
+        instance.packageName = data["packageName"]
         instance.code = data["code"]
-        instance.implemented_class = data["implemented_class"]
         instance.extended_class = data["extended_class"]
+        instance.type = data["type"]
         instance.fields = data["fields"]
         instance.methods = data["methods"]
         instance.method_infos = [MethodInfo.from_dict(mi_data) for mi_data in data["method_infos"]]
         instance.method_names = data["method_names"]
-        instance.description = data["description"]
-        instance.packageName = data["packageName"]
+        instance.imports = data["imports"]
         instance.usages = [UsageInfo.from_dict(x) for x in data["usages"]]
         instance.annotations = data["annotations"]
+        instance.implemented_classes = data["implemented_classes"]
+        instance.indirect_inheritances = data["indirect_inheritances"]
+        instance.description = data["description"]
         return instance
 
     def get_class_info(self) -> dict | None:
@@ -99,15 +108,21 @@ class ClassInfo(BaseInfo):
             "class_name": self.class_name,
             "qualified_class_name": self.qualified_class_name,
             "codebase_name": self.codebase_name,
+            "packageName": self.packageName,
             "code": self.code,
-            "implemented_class": self.implemented_class,
             "extended_class": self.extended_class,
+            "type": self.type,
             "fields": json.dumps(self.fields) if isinstance(self.fields, list) else self.fields,
             "methods": json.dumps(self.methods) if isinstance(self.methods, list) else self.methods,
-            "description": self.description,
-            "packageName": self.packageName,
+            "imports": json.dumps(self.imports) if isinstance(self.imports, list) else self.imports,
             "usages": json.dumps([x.get_meta_data() for x in self.usages]),
-            "annotations": json.dumps(self.annotations) if isinstance(self.annotations, list) else self.annotations
+            "annotations": json.dumps(self.annotations) if isinstance(self.annotations, list) else self.annotations,
+            "implemented_classes": json.dumps(self.implemented_classes) if isinstance(
+                self.implemented_classes,
+                list) else self.implemented_classes,
+            "indirect_inheritances": json.dumps(self.indirect_inheritances) if isinstance(
+                self.implemented_classes,
+                list) else self.indirect_inheritances
         }
         return filter_empty_values(data)
 
@@ -117,17 +132,32 @@ class ClassInfo(BaseInfo):
         else:
             self.qualified_class_name = f"{package_name}.{self.class_name}"
 
-    def fill_class_details(self, code, implemented_class, extended_class, fields, methods, method_names, package_name,
-                           usages, annotations):
+    def fill_class_details(self,
+                           package_name,
+                           code,
+                           extended_class,
+                           type,
+                           fields,
+                           methods,
+                           method_names,
+                           imports,
+                           usages,
+                           annotations,
+                           implemented_classes,
+                           indirectInheritances
+                           ):
+        self.packageName = package_name
         self.code = code
-        self.implemented_class = implemented_class
         self.extended_class = extended_class
+        self.type = type
         self.fields = fields
         self.methods = methods
         self.method_names = method_names
-        self.packageName = package_name
-        self.annotations = annotations
+        self.imports = imports
         self.usages = [UsageInfo.from_dict(usage_data) for usage_data in usages]
+        self.annotations = annotations
+        self.implemented_classes = implemented_classes
+        self.indirect_inheritances = indirectInheritances
 
     def __repr__(self):
         return f"ClassInfo {self.qualified_class_name}')"
@@ -140,15 +170,18 @@ class ClassInfo(BaseInfo):
 
     def update_class_details(self, details):
         self.fill_class_details(
+            details['packageName'],
             details['code'],
-            details['implementedClass'],
             details['extendedClass'],
+            details['type'],
             details['fields'],
             details['methods'],
             details['methodsNames'],
-            details['packageName'],
+            details['imports'],
             details['usages'],
-            details['annotations']
+            details['annotations'],
+            details['implementedClasses'],
+            details['indirectInheritances']
         )
 
     def get_method_info(self):

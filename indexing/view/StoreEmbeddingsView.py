@@ -9,7 +9,7 @@ from indexing.storageManger.PackageStorageManger import PackageStorageManger
 from indexing.types import IndexLevelTypes, StoreLevelTypes
 
 
-class StoreEmbeddingsView(ListCreateAPIView):
+class StoreEmbeddingsView(CreateAPIView):
     serializer_class = StoreEmbeddingSerializer
 
     def create(self, request, *args, **kwargs):

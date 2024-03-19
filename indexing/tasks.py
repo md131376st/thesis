@@ -163,6 +163,7 @@ def process_package_results(all_results, packageInfo_data):
 
 @shared_task
 def generate_embedding(record, level):
+
     log_debug(
         f"[GENERATE_EMBEDDING] start embeddings {level}, {record["name"]} : {record['collection_name']}"
     )
@@ -175,20 +176,22 @@ def generate_embedding(record, level):
         log_debug(
             f"[GENERATE_EMBEDDING] rag store failed level: {level}, {record["name"]} : {record['collection_name']} error: {result['error']}")
     else:
+
         id = record["chunks"][0]["id"]
         log_debug(id)
+
         if level == StoreLevelTypes.CLASS.value:
-            record = MethodRecord.objects().get(id=id)
+            recordMongo = MethodRecord.objects().get(id=id)
 
         elif level == StoreLevelTypes.PACKAGE.value:
-            record = ClassRecord.objects().get(id=id)
+            recordMongo = ClassRecord.objects().get(id=id)
 
         elif level == StoreLevelTypes.CODEBASE.value:
-            record = PackageRecord.objects().get(id=id)
+            recordMongo = PackageRecord.objects().get(id=id)
 
         log_debug(f"result {result["collection_name"]}")
-        record.chromadb_collection_name = result["collection_name"]
-        record.save()
+        recordMongo.chromadb_collection_name = result["collection_name"]
+        recordMongo.save()
 
-    log_debug(
-        f"[GENERATE_EMBEDDING] finish embeddings: {level}, {record["name"]} : {record['collection_name']}")
+        log_debug(
+            f"[GENERATE_EMBEDDING] finish embeddings: {level}, {record["name"]} : {record['collection_name']}")
