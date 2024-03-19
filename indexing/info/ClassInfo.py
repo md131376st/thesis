@@ -12,6 +12,7 @@ from indexing.models import ClassRecord
 from indexing.prompt import class_description_system_prompt
 
 from indexing.tasks import collect_method_info
+from indexing.types import ClassTYPES
 from indexing.utility import log_debug, filter_empty_values, rag_store, open_ai_description_generator, \
     clean_description_json_string
 
@@ -218,7 +219,7 @@ class ClassInfo(BaseInfo):
         log_debug(f"CLASS USAGE: {result}")
         return result
 
-    def description_class_prompt_data(self):
+    def description_class_type_class_prompt_data(self):
         prompt_data = f"""
 CLASS: {self.class_name}\n
 CLASS ATTRIBUTES:\n{self.class_attributes()}\n
@@ -235,15 +236,39 @@ CLASS INDIRECT INHERITANCES:\n
 """
         return prompt_data
 
+    def description_class_prompt_data(self):
+        prompt_data = f"""
+CLASS: {self.class_name}\n
+CLASS ATTRIBUTES:\n{self.class_attributes()}\n
+ANNOTATIONS:\n{"\n".join(self.annotations)}\n
+CODE:\n{self.code}
+USAGES:\n
+{self.get_class_usages()}
+EXTENDED CLASS:\n
+{self.extended_class}
+IMPLEMENTED CLASSES:\n
+{"\n".join(self.implemented_classes)}\n
+CLASS INDIRECT INHERITANCES:\n
+{"\n".join(self.indirect_inheritances)}\n
+"""
+        return prompt_data
+
     def generate_description(self) -> dict | None:
         max_retry = 3
         i = 0
         while i < max_retry:
-            description = open_ai_description_generator(
-                system_prompt=class_description_system_prompt,
-                content=self.description_class_prompt_data(),
-                sender=self.class_name
-            )
+            if self.type == ClassTYPES.CLASS.value:
+                description = open_ai_description_generator(
+                    system_prompt=class_description_system_prompt,
+                    content=self.description_class_type_class_prompt_data(),
+                    sender=self.class_name
+                )
+            else:
+                description = open_ai_description_generator(
+                    system_prompt=class_description_system_prompt,
+                    content=self.description_class_prompt_data(),
+                    sender=self.class_name
+                )
 
             log_debug(f"[ClassInfo_generate_description] description: {type(description)}")
             try:

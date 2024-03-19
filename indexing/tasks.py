@@ -7,7 +7,7 @@ from fileService import settings
 from indexing.info.MethodInfo import MethodInfo
 from indexing.info.PackageInfo import PackageInfo
 from indexing.models import MethodRecord, ClassRecord, PackageRecord
-from indexing.types import StoreLevelTypes
+from indexing.types import StoreLevelTypes, ClassTYPES
 from indexing.utility import log_debug, rag_store
 
 
@@ -113,17 +113,19 @@ def collect_class_info(**kwargs):
     class_info = ClassInfo.from_dict(classinfo_data)
     class_metadata = class_info.get_meta_data()
     log_debug(f"[CLASS_INDEXING] start class name: {class_info.class_name}")
-
-    result = [
-        collect_method_info.s(
-            method_name=method_name,
-            qualified_class_name=class_info.qualified_class_name,
-            source_code_path=class_info.sourceCodePath,
-            class_metadata=class_metadata
-        )()
-        for method_name in class_info.method_names
-    ]
-    return {'results': result, 'classinfo_data': classinfo_data}
+    if class_info.type == ClassTYPES.CLASS.value:
+        result = [
+            collect_method_info.s(
+                method_name=method_name,
+                qualified_class_name=class_info.qualified_class_name,
+                source_code_path=class_info.sourceCodePath,
+                class_metadata=class_metadata
+            )()
+            for method_name in class_info.method_names
+        ]
+        return {'results': result, 'classinfo_data': classinfo_data}
+    else:
+        return {'results': [], 'classinfo_data': classinfo_data}
 
 
 @shared_task
@@ -132,17 +134,18 @@ def process_package_results(all_results, packageInfo_data):
     from indexing.info.ClassInfo import ClassInfo
     results = []
     for group_result in all_results:
-        # generate class embeddings
+        # generate class description
         method_info_list = []
         classinfo_data = group_result['classinfo_data']
         classInfo = ClassInfo.from_dict(classinfo_data)
-        for result in group_result['results']:
-            # the methods can have overriding so the result can be a list
-            if result:
-                # add for each class the method descriptions
-                for result_ in result:
-                    method_info = MethodInfo.from_dict(result_)
-                    method_info_list.append(method_info)
+        if classInfo.type == ClassTYPES.CLASS.value:
+            for result in group_result['results']:
+                # the methods can have overriding so the result can be a list
+                if result:
+                    # add for each class the method descriptions
+                    for result_ in result:
+                        method_info = MethodInfo.from_dict(result_)
+                        method_info_list.append(method_info)
 
         # generate class Descriptions
         classInfo.method_infos = method_info_list
@@ -151,9 +154,6 @@ def process_package_results(all_results, packageInfo_data):
         log_debug(f"[PROCESS_PACKAGE_RESULT]:saving class description  {classInfo.class_name}")
         # save descriptions in mongodb
         classInfo.store_in_mongo_db()
-        # generate class level embeddings
-        # classInfo.generate_class_embedding()
-
         results.append(classInfo)
     package_info = PackageInfo.from_dict(packageInfo_data)
     package_info.classes = results
@@ -164,7 +164,6 @@ def process_package_results(all_results, packageInfo_data):
 
 @shared_task
 def generate_embedding(record, level):
-
     log_debug(
         f"[GENERATE_EMBEDDING] start embeddings {level}, {record["name"]} : {record['collection_name']}"
     )
