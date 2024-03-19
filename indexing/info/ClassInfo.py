@@ -200,28 +200,6 @@ class ClassInfo(BaseInfo):
         for method in self.method_infos:
             method.set_description("MethodInfo_set_description", method.methodName)
 
-    def generate_class_embedding(self):
-        log_debug(f"[GENERATE_CLASS_EMBEDDING] start class name: {self.class_name} ")
-        chunks = [
-            {
-                "text": self.description
-            }
-        ]
-        collection_metadata = {
-            "code_base_name": self.codebase_name,
-            "packageName": self.packageName
-        }
-
-        result = rag_store(
-            chunks=chunks,
-            metadata=[self.get_meta_data()],
-            collection_name=self.packageName,
-            collection_metadata=collection_metadata
-        )
-        if "error" in result:
-            log_debug(f"[error] [GENERATE_CLASS_EMBEDDING]  ")
-        log_debug(f"[GENERATE_CLASS_EMBEDDING] finish  embeddings class name: {self.class_name} ")
-
     def get_class_methods_descriptions(self):
         descriptions = ""
         for method in self.method_infos:
@@ -248,6 +226,12 @@ ANNOTATIONS:\n{"\n".join(self.annotations)}\n
 METHODS DESCRIPTIONS:\n{self.get_class_methods_descriptions()}\n
 USAGES:\n
 {self.get_class_usages()}
+EXTENDED CLASS:\n
+{self.extended_class}
+IMPLEMENTED CLASSES:\n
+{"\n".join(self.implemented_classes)}\n
+CLASS INDIRECT INHERITANCES:\n
+{"\n".join(self.indirect_inheritances)}\n
 """
         return prompt_data
 
@@ -263,13 +247,17 @@ USAGES:\n
 
             log_debug(f"[ClassInfo_generate_description] description: {type(description)}")
             try:
+
                 description = clean_description_json_string(description)
                 log_debug(f"[ClassInfo_generate_description] CLEANED DESCRIPTION {description}")
                 description_json = json.loads(description)
                 return description_json
             except json.JSONDecodeError:
-                log_debug(f"[ClassInfo_generate_description] not valid json: {description}")
-            i += 1
+                log_debug(f"[ERROR][ClassInfo_generate_description] not valid json: {description}")
+            except TypeError as e:
+                log_debug(f"[ERROR][ClassInfo_generate_description] TypeError: {type(e)}")
+            finally:
+                i += 1
         return None
 
     def class_attributes(self):

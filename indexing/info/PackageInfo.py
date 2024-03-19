@@ -77,39 +77,6 @@ class PackageInfo(BaseInfo):
     def add_class(self, class_info):
         self.classes.append(class_info)
 
-    def generate_package_embeddings(self):
-        from indexing.info.ClassInfo import rag_store
-        chunks = []
-        metadata = []
-        if self.classes:
-            for class_ in self.classes:
-                chunks.append(
-                    {
-                        "text": class_.get_description()
-                    }
-                )
-                metadata.append(class_.get_meta_data())
-            collection_metadata = self.get_meta_data()
-            rag_store(chunks, metadata, self.package_name, collection_metadata)
-        else:
-            log_debug(f"[ERROR] empty package")
-
-    def generate_codebase_embeddings(self):
-        from indexing.info.ClassInfo import rag_store
-        if self.description:
-            collection_name = "MyCodeBase"
-            chunks = [{
-                "text": self.description
-            }]
-            collection_metadata = {}
-            rag_store([
-                {
-                    "text": self.description
-                }
-            ], [
-                self.get_meta_data()
-            ], collection_name, collection_metadata)
-
     def description_package_prompt_data(self):
         description = f"Package name : {self.package_name} \n"
         for classinfo in self.classes:
@@ -132,8 +99,11 @@ class PackageInfo(BaseInfo):
                 description_json = json.loads(description)
                 return description_json
             except json.JSONDecodeError:
-                log_debug(f"[PackageInfo_generate_description] not valid json: {description}")
-            i += 1
+                log_debug(f"[ERROR][PackageInfo_generate_description] not valid json: {description}")
+            except TypeError as e:
+                log_debug(f"[ERROR][PackageInfo_generate_description] TypeError: {type(e)}")
+            finally:
+                i += 1
         return None
 
     def store_in_mongo_db(self):

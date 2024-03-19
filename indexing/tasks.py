@@ -113,6 +113,7 @@ def collect_class_info(**kwargs):
     class_info = ClassInfo.from_dict(classinfo_data)
     class_metadata = class_info.get_meta_data()
     log_debug(f"[CLASS_INDEXING] start class name: {class_info.class_name}")
+
     result = [
         collect_method_info.s(
             method_name=method_name,

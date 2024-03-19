@@ -28,6 +28,13 @@ class StoreLevelTypes(Enum):
     OBJECT = "method"
 
 
+class ClassTYPES(Enum):
+    CLASS = "CLASS"
+    ENUM = "ENUM"
+    INTERFACE = "INTERFACE"
+    RECORD = "RECORD"
+
+
 class TypeConverter:
     regex = '(codebase|package|class|method)'
 

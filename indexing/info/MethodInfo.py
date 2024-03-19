@@ -152,8 +152,11 @@ class MethodInfo(BaseInfo):
                 description_json = json.loads(description)
                 return description_json
             except json.JSONDecodeError:
-                log_debug(f"[MethodInfo_generate_description] not valid json: {description}")
-            i += 1
+                log_debug(f"[ERROR][MethodInfo_generate_description] not valid json: {description}")
+            except TypeError as e:
+                log_debug(f"[ERROR][MethodInfo_generate_description] TypeError: {type(e)}")
+            finally:
+                i += 1
         return None
 
     def store_in_mongo_db(self, codebase_name, collection_metadata):
@@ -191,24 +194,3 @@ class MethodInfo(BaseInfo):
             log_debug(f"[ERROR][STORE_IN_DB_Method]An unexpected error occurred while saving record: {e}")
             # Optionally, log the error or take other actions
 
-    def generate_method_embedding(self, class_metadata):
-        log_debug(
-            f"[GENERATE_METHOD_EMBEDDING] start embeddings method name: {self.methodName} class name: {self.className}")
-        chunks = []
-        metadata = []
-        if self.description:
-            chunks.append({
-                "text": self.description
-            })
-            metadata.append(self.get_meta_data())
-            qualified_class_name = self.packageName + '.' + self.className
-            result = rag_store(chunks, metadata, qualified_class_name, class_metadata)
-            if 'error' in result:
-                log_debug(
-                    f"[ERROR][GENERATE_METHOD_EMBEDDING] rag store failed method {self.methodName} class {self.className} error: {result['error']}")
-            else:
-                log_debug(
-                    f"[GENERATE_METHOD_EMBEDDING] finish embeddings method name: {self.methodName} class name: {self.className}")
-        else:
-            log_debug(
-                f"[ERROR][GENERATE_METHOD_EMBEDDING] empty description for method {self.methodName} class {self.className}")
