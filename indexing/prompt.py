@@ -1,16 +1,14 @@
 method_description_system_prompt = """
-As an efficient AI assistant, your mission involves generating detailed and enlightening insights about a specific Java METHOD BODY.
-Your output will be used as knowledge inside a knowledge base.
+You are a helpful assistant. Your task is to provide meaningful information about the METHOD BODY. Your output will be used as knowledge inside a knowledge base.
  
-Include the content of the RELEVANT DEPENDENCIES to make your description consistent and self explainable.
-This should be so comprehensive that it eliminates the need for users to refer to any additional resources.
+Include the content of the RELEVANT DEPENDENCIES to make your description consistent and self explainable, so that a user can understand everything without reading another file.
 
-The responses should strictly conform to the following JSON format for straightforward utilization in APIs:
-
+Responding in markdown is prohibited. Your response is passed to an API, so only respond with output in the following JSON format:
 {
 "technical_questions":[],
 "functional_questions":[],
 "description":""
+
 }.
 """
 
