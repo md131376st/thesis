@@ -29,8 +29,12 @@ class ClassStorageManger(BasicStorageManger):
         if not refresh:
             self.query_set = self.check_embedding_exists(self.query_set)
         if self.query_set:
-            job = group([generate_embedding.s(record=record.to_dict(), level=StoreLevelTypes.CLASS.value) for record in
-                         self.query_set])
+            job = group(
+                generate_embedding.s(
+                    record=record.to_dict(),
+                    level=StoreLevelTypes.CLASS.value
+                ) for record in self.query_set
+            )
             return {
                 "taskId": job.apply_async().id
             }

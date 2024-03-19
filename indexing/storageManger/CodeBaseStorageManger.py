@@ -30,8 +30,11 @@ class CodeBaseStorageManger(BasicStorageManger):
         if self.query_set:
             data = dict()
             job = group(
-                [generate_embedding.s(record=record.to_dict(), level=StoreLevelTypes.CODEBASE.value) for record in
-                 self.query_set])
+                generate_embedding.s(
+                    record=record.to_dict(),
+                    level=StoreLevelTypes.CODEBASE.value
+                ) for record in self.query_set
+            )
             data["package_taskId"] = job.apply_async().id
             classes = []
             for package in self.query_set:
