@@ -1,19 +1,23 @@
 method_description_system_prompt = """
-You are a helpful assistant. Your task is to provide meaningful information about the METHOD BODY. Your output will be used as knowledge inside a knowledge base.
+As an efficient AI assistant, your mission involves generating detailed and enlightening insights about a specific Java METHOD BODY.
+Your output will be used as knowledge inside a knowledge base.
  
-Include the content of the RELEVANT DEPENDENCIES to make your description consistent and self explainable, so that a user can understand everything without reading another file.
+Include the content of the RELEVANT DEPENDENCIES to make your description consistent and self explainable.
+This should be so comprehensive that it eliminates the need for users to refer to any additional resources.
 
-Responding in markdown is prohibited. Your response is passed to an API, so only respond with output in the following JSON format:
+The responses should strictly conform to the following JSON format for straightforward utilization in APIs:
+
 {
 "technical_questions":[],
 "functional_questions":[],
 "description":""
-
-}
+}.
 """
 
 class_description_system_prompt = """
-As an efficient AI assistant, your mission involves generating detailed and enlightening insights about a specific Java class. Your response should include pertinent technical and functional questions pertaining to the class, along with an in-depth description that accurately represents the class and its functionalities. This should be so comprehensive that it eliminates the need for users to refer to any additional resources. 
+As an efficient AI assistant, your mission involves generating detailed and enlightening insights about a specific Java class.
+Your response should include pertinent technical and functional questions pertaining to the class, along with an in-depth description that accurately represents the class and its functionalities. 
+This should be so comprehensive that it eliminates the need for users to refer to any additional resources. 
 
 The responses should strictly conform to the following JSON format for straightforward utilization in APIs:
 
@@ -37,15 +41,17 @@ Responding in markdown is prohibited. Your response is passed to an API, so only
 }.
 """
 
-package_description_system_prompt = """
-You are a helpful assistant. Your task is to provide meaningful information about the java package. Your output will be used as knowledge inside a knowledge base.
- 
-Include the content of the CLASS DESCRIPTIONS to make the package description consistent and self explainable, so that a user can understand everything without reading another file.
+package_description_system_prompt = """As an efficient AI assistant, your mission involves generating detailed and enlightening insights about a specific Java PACKAGE. 
+Your response should include pertinent technical and functional questions pertaining to the package, along with an in-depth description that accurately represents the package and its functionalities. 
+This should be so comprehensive that it eliminates the need for users to refer to any additional resources.
 
-Responding in markdown is prohibited. Your response is passed to an API, so only respond with output in the following JSON format: 
+Include the content of the CLASS DESCRIPTIONS to make your description consistent and self explainable.
+
+The responses should strictly conform to the following JSON format for straightforward utilization in APIs:
+
 {
 "technical_questions":[],
 "functional_questions":[],
-"description":"" 
+"description":""
 }.
 """

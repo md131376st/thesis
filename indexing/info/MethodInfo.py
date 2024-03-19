@@ -130,9 +130,10 @@ class MethodInfo(BaseInfo):
 
     def generate_description(self) -> dict | None:
         user_prompt = f"""
+        METHOD NAME:
+        {self.methodName}
         METHOD BODY:
         {self.body}
-        
         DEPENDENCIES STUBS:
         {self.dependencies_stubs}
         """
@@ -193,4 +194,3 @@ class MethodInfo(BaseInfo):
             # Handle any other exceptions that were not caught by the specific handlers above
             log_debug(f"[ERROR][STORE_IN_DB_Method]An unexpected error occurred while saving record: {e}")
             # Optionally, log the error or take other actions
-

@@ -221,36 +221,36 @@ class ClassInfo(BaseInfo):
 
     def description_class_type_class_prompt_data(self):
         prompt_data = f"""
-CLASS: {self.class_name}\n
-CLASS ATTRIBUTES:\n{self.class_attributes()}\n
-ANNOTATIONS:\n{"\n".join(self.annotations)}\n
-METHODS DESCRIPTIONS:\n{self.get_class_methods_descriptions()}\n
-USAGES:\n
-{self.get_class_usages()}
-EXTENDED CLASS:\n
-{self.extended_class}
-IMPLEMENTED CLASSES:\n
-{"\n".join(self.implemented_classes)}\n
-CLASS INDIRECT INHERITANCES:\n
-{"\n".join(self.indirect_inheritances)}\n
-"""
+        CLASS: {self.class_name}\n
+        CLASS ATTRIBUTES:\n{self.class_attributes()}\n
+        ANNOTATIONS:\n{"\n".join(self.annotations)}\n
+        METHODS DESCRIPTIONS:\n{self.get_class_methods_descriptions()}\n
+        USAGES:\n
+        {self.get_class_usages()}
+        EXTENDED CLASS:\n
+        {self.extended_class}
+        IMPLEMENTED CLASSES:\n
+        {"\n".join(self.implemented_classes)}\n
+        CLASS INDIRECT INHERITANCES:\n
+        {"\n".join(self.indirect_inheritances)}\n
+        """
         return prompt_data
 
     def description_class_prompt_data(self):
         prompt_data = f"""
-CLASS: {self.class_name}\n
-CLASS ATTRIBUTES:\n{self.class_attributes()}\n
-ANNOTATIONS:\n{"\n".join(self.annotations)}\n
-CODE:\n{self.code}
-USAGES:\n
-{self.get_class_usages()}
-EXTENDED CLASS:\n
-{self.extended_class}
-IMPLEMENTED CLASSES:\n
-{"\n".join(self.implemented_classes)}\n
-CLASS INDIRECT INHERITANCES:\n
-{"\n".join(self.indirect_inheritances)}\n
-"""
+        CLASS: {self.class_name}\n
+        CLASS ATTRIBUTES:\n{self.class_attributes()}\n
+        ANNOTATIONS:\n{"\n".join(self.annotations)}\n
+        CODE:\n{self.code}
+        USAGES:\n
+        {self.get_class_usages()}
+        EXTENDED CLASS:\n
+        {self.extended_class}
+        IMPLEMENTED CLASSES:\n
+        {"\n".join(self.implemented_classes)}\n
+        CLASS INDIRECT INHERITANCES:\n
+        {"\n".join(self.indirect_inheritances)}\n
+        """
         return prompt_data
 
     def generate_description(self) -> dict | None:

@@ -42,9 +42,7 @@ def update_package_info(results, packageInfo_data):
     packageInfo.set_description("PackageInfo_set_description", packageInfo.package_name)
     log_debug(f"\n [UPDATE_PACKAGE_INFO] save package descriptions in mongodb :\n \n")
     packageInfo.store_in_mongo_db()
-    # log_debug(f"\n[UPDATE_PACKAGE_INFO] generate package embedding in base class {packageInfo.package_name}  :\n\n")
-    # packageInfo.generate_codebase_embeddings()
-    # log_debug(f"\n [UPDATE_PACKAGE_INFO] finish package embedding in base class {packageInfo.package_name} :\n\n")
+
     return packageInfo.to_dict()
 
 
@@ -157,7 +155,6 @@ def process_package_results(all_results, packageInfo_data):
         results.append(classInfo)
     package_info = PackageInfo.from_dict(packageInfo_data)
     package_info.classes = results
-    log_debug(f"[PROCESS_PACKAGE_RESULT] generate package embedding: {package_info.package_name} ")
     results_ = [classInfo.to_dict() for classInfo in results]
     return results_
 

@@ -78,10 +78,12 @@ class PackageInfo(BaseInfo):
         self.classes.append(class_info)
 
     def description_package_prompt_data(self):
-        description = f"Package name : {self.package_name} \n"
-        for classinfo in self.classes:
-            description += f"{classinfo.get_description()} \n"
-        return description
+        prompt_data = f"""
+        PACKAGE NAME : {self.package_name} \n
+        CLASS DESCRIPTIONS:
+        {"\n".join(classinfo.get_description() for classinfo in self.classes)}
+        """
+        return prompt_data
 
     def generate_description(self) -> dict | None:
         max_retry = 3
