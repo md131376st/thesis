@@ -136,6 +136,25 @@ def rag_retrival(question,
         return None
 
 
+def rag_delete(collection_name, id):
+    try:
+        log_debug(f"[ERROR]: {collection_name}")
+        response = requests.request(method="DELETE",
+                                    url=f"{settings.RAG_URL}/document/{id}/",
+                                    params={"collection_name": collection_name},
+                                    headers={"Content-Type": "application/json"},
+                                    )
+        if response.status_code != 200:
+            log_debug(f"[ERROR]: {response.json()}")
+            return None
+        else:
+            return 200
+
+    except Exception as e:
+        log_debug(f"[ERROR] error retrieving embedding for {collection_name}: {e} ")
+        return None
+
+
 def clean_description_json_string(description: str) -> str:
     if "```" not in description:
         return description

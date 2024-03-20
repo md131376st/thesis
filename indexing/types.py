@@ -21,6 +21,12 @@ class DescriptionType(Enum):
     METHOD = "method"
 
 
+class TreeLevel(Enum):
+    PACKAGE = "package"
+    CLASS = "class"
+    METHOD = "method"
+
+
 class StoreLevelTypes(Enum):
     CODEBASE = "codebase"
     PACKAGE = "package"

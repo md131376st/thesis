@@ -2,6 +2,7 @@ from django.urls import path, register_converter
 
 from indexing.types import TypeConverter
 from indexing.view.DescriptionView import DescriptionViewSet
+from indexing.view.EmbeddingViewSet import EmbeddingViewSet
 from indexing.view.IndexRetrivalView import IndexRetrivalView
 from indexing.view.StoreEmbeddingsView import StoreEmbeddingsView
 from indexing.view.CeleryMangerView import CeleryManger
@@ -15,13 +16,19 @@ urlpatterns = [
     path('index/retrieve', IndexRetrivalView.as_view()),
     path('description/<tc:type>',
          DescriptionViewSet.as_view(
-             {'get': 'list',
-              'post': 'create',
-              'put': 'update',
-              'delete': 'destroy'
-              }
+             {
+                 'get': 'list',
+                 'post': 'create',
+                 'put': 'update',
+                 'delete': 'destroy'
+             }
          )),
-
-    # data una domanda ritorna i documenti più rilevanti # document/retri
-    path('index', StoreEmbeddingsView.as_view())  # crea un indice della code base
+    path('index', StoreEmbeddingsView.as_view()),
+    path('index/<str:id>/',
+         EmbeddingViewSet.as_view(
+             {
+                 'post': 'create',
+                 'delete': 'destroy'
+             }
+         ))
 ]
