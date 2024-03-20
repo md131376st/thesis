@@ -2,7 +2,8 @@ from typing import Type, Dict, Any, List
 
 from fileService import settings
 from indexing.types import QueryTypes
-from indexing.utility import log_debug, rag_retrival
+from indexing.utility import log_debug
+from indexing.ragHandler import RagHandler
 
 
 class TaskHandler:
@@ -12,7 +13,7 @@ class TaskHandler:
                          package_name,
                          n_method_results,
                          n_class_results) -> (Any | None):
-        package_result = rag_retrival(question=question,
+        package_result = RagHandler.rag_retrival(question=question,
                                       collection_name=package_name,
                                       n_results=n_class_results)
         if not package_result:
@@ -37,7 +38,7 @@ class TaskHandler:
 
     @staticmethod
     def class_retrival(question, qualified_class_name, n_method_results) -> Any | None:
-        class_result = rag_retrival(question=question,
+        class_result = RagHandler.rag_retrival(question=question,
                                     collection_name=qualified_class_name,
                                     n_results=n_method_results)
         if not class_result:
@@ -81,7 +82,7 @@ class TaskHandler:
         ):
             collection_name = settings.INDEXROOT
             log_debug(f"[QUERY_HANDLER] collection_name: {collection_name}")
-            result = rag_retrival(question=question,
+            result = RagHandler.rag_retrival(question=question,
                                   collection_name=collection_name,
                                   n_results=n_package_results)
             return TaskHandler.query_result_handler(result,
@@ -91,7 +92,7 @@ class TaskHandler:
 
         elif query_type is QueryTypes.CODEBASE.value:
             log_debug(f"[QUERY_HANDLER] collection_name: {collection_name}")
-            result = rag_retrival(question=question,
+            result = RagHandler.rag_retrival(question=question,
                                   collection_name=settings.INDEXROOT,
                                   n_results=n_package_results,
                                   keyword={"code_base_name": collection_name})

@@ -3,7 +3,8 @@ from celery import group
 from indexing.collector.BaseCollector import BaseCollector
 from indexing.info.PackageInfo import PackageInfo
 from indexing.tasks import collect_package_class_info
-from indexing.utility import packet_info_call, log_debug, rag_store
+from indexing.utility import packet_info_call, log_debug
+from indexing.ragHandler import RagHandler
 
 
 class CodeBaseCollector(BaseCollector):
@@ -75,7 +76,7 @@ class CodeBaseCollector(BaseCollector):
             log_debug(f"[ERROR] empty class function")
         collection_name = "MyCodeBase"
         collection_metadata = {}
-        rag_store(chunks, metadata, collection_name, collection_metadata)
+        RagHandler.rag_store(chunks, metadata, collection_name, collection_metadata)
 
     def get_meta_data(self):
         metadata = {

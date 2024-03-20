@@ -8,7 +8,8 @@ from indexing.info.MethodInfo import MethodInfo
 from indexing.info.PackageInfo import PackageInfo
 from indexing.models import MethodRecord, ClassRecord, PackageRecord
 from indexing.types import StoreLevelTypes, ClassTYPES
-from indexing.utility import log_debug, rag_store
+from indexing.utility import log_debug
+from indexing.ragHandler import RagHandler
 
 
 @shared_task()
@@ -164,7 +165,7 @@ def generate_embedding(record, level):
     log_debug(
         f"[GENERATE_EMBEDDING] start embeddings {level}, {record["name"]} : {record['collection_name']}"
     )
-    result = rag_store(chunks=record["chunks"],
+    result = RagHandler.rag_store(chunks=record["chunks"],
                        metadata=record["metadata"],
                        collection_metadata=record["collection_metadata"],
                        collection_name=record["collection_name"]

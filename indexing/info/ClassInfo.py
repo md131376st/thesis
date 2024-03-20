@@ -13,8 +13,9 @@ from indexing.prompt import class_description_system_prompt
 
 from indexing.tasks import collect_method_info
 from indexing.types import ClassTYPES
-from indexing.utility import log_debug, filter_empty_values, rag_store, open_ai_description_generator, \
+from indexing.utility import log_debug, filter_empty_values, open_ai_description_generator, \
     clean_description_json_string
+
 
 
 class ClassInfo(BaseInfo):
