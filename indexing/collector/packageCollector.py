@@ -1,6 +1,5 @@
 from indexing.collector.BaseCollector import BaseCollector
 from indexing.info.PackageInfo import PackageInfo
-from indexing.utility import log_debug
 
 
 class PackageCollector(BaseCollector):

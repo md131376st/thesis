@@ -1,17 +1,15 @@
 import json
 
-
 from mongoengine import LookUpError, DoesNotExist
+from rest_framework import status, exceptions, viewsets
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
-
+import indexing.collector.packageCollector as inpc
+from indexing.collector.ClassCollector import ClassCollector
+from indexing.collector.codeBaseCollector import CodeBaseCollector
 from indexing.models import MethodRecord, ClassRecord, PackageRecord
 from indexing.serializer.IndexCreateSerializer import IndexCreateSerializer
-from rest_framework import status, mixins, exceptions, viewsets
-from rest_framework.response import Response
-from indexing.collector.ClassCollector import ClassCollector
-import indexing.collector.packageCollector as inpc
-from indexing.collector.codeBaseCollector import CodeBaseCollector
 from indexing.serializer.MongoSerializer import MethodRecordSerializer, PackageRecordSerializer, ClassRecordSerializer
 from indexing.types import IndexLevelTypes, DescriptionType
 

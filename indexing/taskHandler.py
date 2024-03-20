@@ -1,9 +1,9 @@
-from typing import Type, Dict, Any, List
+from typing import Any
 
 from fileService import settings
+from indexing.ragHandler import RagHandler
 from indexing.types import QueryTypes
 from indexing.utility import log_debug
-from indexing.ragHandler import RagHandler
 
 
 class TaskHandler:

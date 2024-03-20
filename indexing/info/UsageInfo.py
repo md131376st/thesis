@@ -1,5 +1,6 @@
-from indexing.info.BaseInfo import BaseInfo
 import json
+
+from indexing.info.BaseInfo import BaseInfo
 
 
 class UsageInfo(BaseInfo):

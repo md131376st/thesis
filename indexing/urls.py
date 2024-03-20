@@ -1,11 +1,11 @@
 from django.urls import path, register_converter
 
 from indexing.types import TypeConverter
+from indexing.view.CeleryMangerView import CeleryManger
 from indexing.view.DescriptionView import DescriptionViewSet
 from indexing.view.EmbeddingViewSet import EmbeddingViewSet
 from indexing.view.IndexRetrivalView import IndexRetrivalView
 from indexing.view.StoreEmbeddingsView import StoreEmbeddingsView
-from indexing.view.CeleryMangerView import CeleryManger
 
 app_name = 'indexing'
 

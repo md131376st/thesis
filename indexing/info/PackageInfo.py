@@ -1,13 +1,13 @@
 import json
-from celery import chain, group
 
-from indexing.models import PackageRecord
-from indexing.utility import packet_info_call, log_debug, filter_empty_values, open_ai_description_generator, \
-    clean_description_json_string
+from celery import chain, group
+from mongoengine import ValidationError, NotUniqueError, OperationError
 
 from indexing.info.BaseInfo import BaseInfo
+from indexing.models import PackageRecord
 from indexing.prompt import package_description_system_prompt
-from mongoengine import ValidationError, NotUniqueError, OperationError
+from indexing.utility import packet_info_call, log_debug, filter_empty_values, open_ai_description_generator, \
+    clean_description_json_string
 
 
 class PackageInfo(BaseInfo):

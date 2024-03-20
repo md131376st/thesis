@@ -7,9 +7,9 @@ from fileService import settings
 from indexing.info.MethodInfo import MethodInfo
 from indexing.info.PackageInfo import PackageInfo
 from indexing.models import MethodRecord, ClassRecord, PackageRecord
+from indexing.ragHandler import RagHandler
 from indexing.types import StoreLevelTypes, ClassTYPES
 from indexing.utility import log_debug
-from indexing.ragHandler import RagHandler
 
 
 @shared_task()

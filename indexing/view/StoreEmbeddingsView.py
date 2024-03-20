@@ -1,12 +1,12 @@
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, ListCreateAPIView
+from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 
 from indexing.serializer.StoreEmbeddingSerializer import StoreEmbeddingSerializer
 from indexing.storageManger.ClassStorageManger import ClassStorageManger
 from indexing.storageManger.CodeBaseStorageManger import CodeBaseStorageManger
 from indexing.storageManger.PackageStorageManger import PackageStorageManger
-from indexing.types import IndexLevelTypes, StoreLevelTypes
+from indexing.types import StoreLevelTypes
 
 
 class StoreEmbeddingsView(CreateAPIView):

@@ -2,10 +2,10 @@ from rest_framework import viewsets, exceptions, status
 from rest_framework.response import Response
 
 from indexing.models import PackageRecord, MethodRecord, ClassRecord
+from indexing.ragHandler import RagHandler
 from indexing.serializer.IndexCreateSerializer import IndexCreateSerializer
 from indexing.types import TreeLevel
 from indexing.utility import log_debug
-from indexing.ragHandler import  RagHandler
 
 
 class EmbeddingViewSet(viewsets.ModelViewSet):

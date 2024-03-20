@@ -83,31 +83,4 @@ class RagHandler:
             return {"error": "e"}
 
 
-def rag_store(chunks,
-              metadata,
-              collection_name,
-              collection_metadata) -> dict:
-    try:
-        log_debug(f"[RAG STORE]\n{chunks}\n{metadata}\n")
-        response = requests.request(
-            "POST",
-            f"{settings.RAG_URL}/store",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {
-                    "collection_name": f"{collection_name}",
-                    "is_async": True,
-                    "chunks": chunks,
-                    "metadata": metadata,
-                    "collection_metadata": collection_metadata,
-                    "embedding_type": settings.EMBEDDING_TYPE
-                }
-            ))
-        if response.status_code != 202:
-            log_debug(f"[ERROR RESPONSE CODE]: {response}")
-            return {"error": response}
-        else:
-            return response.json()
-    except Exception as e:
-        log_debug(f"[ERROR] retrieving embedding for {collection_name}: {e} ")
-        return {"error": "e"}
+
