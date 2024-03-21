@@ -18,13 +18,13 @@ class MethodRecordSerializer(serializers.Serializer):
                       'qualified_class_name',
                       'package_name',
                       'codebase_name',
-                      'chromadb_collection_name',
                       'description',
                       'metadata',
                       'technical_questions',
                       'functional_questions']:
             if field in validated_data:
                 setattr(instance, field, validated_data[field])
+        instance.chromadb_collection_name = None
         instance.save()
         return instance
 
@@ -48,7 +48,6 @@ class ClassRecordSerializer(serializers.Serializer):
             'qualified_class_name',
             'package_name',
             'codebase_name',
-            'chromadb_collection_name',
             'description',
             'metadata',
             'technical_questions',
@@ -56,6 +55,7 @@ class ClassRecordSerializer(serializers.Serializer):
         ]:
             if field in validated_data:
                 setattr(instance, field, validated_data[field])
+        instance.chromadb_collection_name = None
         instance.save()
         return instance
 
@@ -78,7 +78,6 @@ class PackageRecordSerializer(serializers.Serializer):
         for field in [
             'package_name',
             'codebase_name',
-            'chromadb_collection_name',
             'description',
             'metadata',
             'technical_questions',
@@ -86,6 +85,7 @@ class PackageRecordSerializer(serializers.Serializer):
         ]:
             if field in validated_data:
                 setattr(instance, field, validated_data[field])
+        instance.chromadb_collection_name = None
         instance.save()
         return instance
 

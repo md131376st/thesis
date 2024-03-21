@@ -9,9 +9,11 @@ import indexing.collector.packageCollector as inpc
 from indexing.collector.ClassCollector import ClassCollector
 from indexing.collector.codeBaseCollector import CodeBaseCollector
 from indexing.models import MethodRecord, ClassRecord, PackageRecord
+from indexing.ragHandler import RagHandler
 from indexing.serializer.IndexCreateSerializer import IndexCreateSerializer
 from indexing.serializer.MongoSerializer import MethodRecordSerializer, PackageRecordSerializer, ClassRecordSerializer
 from indexing.types import IndexLevelTypes, DescriptionType
+from indexing.utility import log_debug
 
 
 class DescriptionViewSet(viewsets.ModelViewSet):
@@ -161,6 +163,7 @@ class DescriptionViewSet(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def destroy(self, request, *args, **kwargs):
+        propagate = self.request.query_params.get('propagate', False)
         if self.kwargs['type'] is DescriptionType.CODEBASE:
             return Response(
                 data={'error': "codebase can't be used with put"},
@@ -169,6 +172,12 @@ class DescriptionViewSet(viewsets.ModelViewSet):
         if instance_id:
             try:
                 instance = self.get_queryset().get(id=instance_id)
+                if instance.chromadb_collection_name and propagate:
+                    rag_response = RagHandler.rag_delete(
+                        collection_name=instance.chromadb_collection_name,
+                        id=instance.id
+                    )
+                    log_debug(f"[RagSystem return] {rag_response} ")
                 self.perform_destroy(instance)
                 return Response(status=status.HTTP_200_OK)
             except DoesNotExist:

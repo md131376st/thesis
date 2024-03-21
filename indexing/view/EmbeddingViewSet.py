@@ -34,13 +34,16 @@ class EmbeddingViewSet(viewsets.ModelViewSet):
         return queryset.get(id=self.kwargs['id'])
 
     def destroy(self, request, *args, **kwargs):
-        object = self.get_object()
-        if object.chromadb_collection_name:
-            rag_response = RagHandler.rag_delete(collection_name=object.chromadb_collection_name, id=object.id)
+        instance = self.get_object()
+        if instance.chromadb_collection_name:
+            rag_response = RagHandler.rag_delete(
+                collection_name=instance.chromadb_collection_name,
+                id=instance.id
+            )
             log_debug(f"[RagSystem return] {rag_response} ")
             if rag_response:
-                object.chromadb_collection_name = None
-                object.save()
+                instance.chromadb_collection_name = None
+                instance.save()
                 return Response(status=status.HTTP_200_OK)
             else:
                 return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
