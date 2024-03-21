@@ -39,6 +39,8 @@ class EmbeddingViewSet(viewsets.ModelViewSet):
             rag_response = RagHandler.rag_delete(collection_name=object.chromadb_collection_name, id=object.id)
             log_debug(f"[RagSystem return] {rag_response} ")
             if rag_response:
+                object.chromadb_collection_name = None
+                object.save()
                 return Response(status=status.HTTP_200_OK)
             else:
                 return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
