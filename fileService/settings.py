@@ -189,6 +189,6 @@ INDEXROOT = "MyCodeBase"
 PARSER_URL = "http://127.0.0.1:8080/parser/"
 RAG_URL = "http://127.0.0.1:8001"
 
-EMBEDDING_TYPE = "text-embedding-3-large"
+EMBEDDING_TYPE = "text-embedding-3-small"
 
 
