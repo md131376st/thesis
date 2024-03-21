@@ -12,17 +12,16 @@ from indexing.models import MethodRecord, ClassRecord, PackageRecord
 from indexing.ragHandler import RagHandler
 from indexing.serializer.IndexCreateSerializer import IndexCreateSerializer
 from indexing.serializer.MongoSerializer import MethodRecordSerializer, PackageRecordSerializer, ClassRecordSerializer
-from indexing.types import IndexLevelTypes, DescriptionType
+from indexing.types import DescriptionType
 from indexing.utility import log_debug
 
 
 class DescriptionViewSet(viewsets.ModelViewSet):
-    serializer_class = IndexCreateSerializer
 
     def get_serializer_class(self):
         if self.action in ['create']:
             return IndexCreateSerializer
-        if self.action in ['list', 'update', 'destroy']:
+        else:
             description_type = self.kwargs['type']
             if (description_type == DescriptionType.CODEBASE
                     or description_type == DescriptionType.METHOD):
@@ -31,7 +30,6 @@ class DescriptionViewSet(viewsets.ModelViewSet):
                 return PackageRecordSerializer
             else:
                 return ClassRecordSerializer
-        return IndexCreateSerializer
 
     def get_queryset(self):
         if self.action in ['list']:
@@ -191,17 +189,17 @@ class DescriptionViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
 
-            if serializer.validated_data["indexType"] == IndexLevelTypes.CLASS.value:
+            if self.kwargs['type'] == DescriptionType.CLASS:
                 return self.class_index(
                     serializer.validated_data["path"],
                     serializer.validated_data["collectionName"],
                     serializer.validated_data["codebaseName"])
-            elif serializer.validated_data["indexType"] == IndexLevelTypes.PACKAGE.value:
+            elif self.kwargs['type'] == DescriptionType.PACKAGE:
                 return self.package_index(
                     serializer.validated_data["path"],
                     serializer.validated_data["collectionName"],
                     serializer.validated_data["codebaseName"])
-            else:
+            elif self.kwargs['type'] == DescriptionType.CODEBASE:
                 return self.codebase_index(
                     serializer.validated_data["path"],
                     serializer.validated_data["collectionName"],
