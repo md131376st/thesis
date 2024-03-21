@@ -3,13 +3,13 @@ from rest_framework.response import Response
 
 from indexing.models import PackageRecord, MethodRecord, ClassRecord
 from indexing.ragHandler import RagHandler
-from indexing.serializer.IndexCreateSerializer import IndexCreateSerializer
+from indexing.serializer.EmbeddingStoreInstanceSerilizer import EmbeddingStoreInstanceSerializer
 from indexing.types import TreeLevel
 from indexing.utility import log_debug
 
 
 class EmbeddingViewSet(viewsets.ModelViewSet):
-    serializer_class = IndexCreateSerializer
+    serializer_class = EmbeddingStoreInstanceSerializer
 
     def get_queryset(self):
         type = self.request.query_params.get('type', None)
